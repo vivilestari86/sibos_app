@@ -77,8 +77,7 @@ class TeknisiSuccessScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
               ),
               onPressed: () {
-                // TODO: arahkan ke halaman teknisi utama (jika ada)
-                Navigator.pop(context); // sementara kembali
+                Navigator.pushReplacementNamed(context, '/teknisi-home');
               },
               child: const Text(
                 "Masuk",

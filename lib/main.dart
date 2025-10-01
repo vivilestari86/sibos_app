@@ -5,6 +5,7 @@ import 'package:sibos_app/screens/notification_screen.dart';
 import 'package:sibos_app/screens/profil_screen.dart';
 import 'package:sibos_app/screens/riwayat_pemesanan_screen.dart';
 import 'package:sibos_app/screens/teknisi_form_screen.dart';
+import 'package:sibos_app/screens/teknisi_home_screen.dart';
 import 'package:sibos_app/screens/teknisi_success_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
         '/edit-profil': (context) => const EditProfileScreen(),
         '/teknisi-form': (context) => const TeknisiFormScreen(),
         '/teknisi-success': (context) => const TeknisiSuccessScreen(),
+        '/teknisi-home': (context) => const TeknisiHomeScreen(),
       },
     );
   }
