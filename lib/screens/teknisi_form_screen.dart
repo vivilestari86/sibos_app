@@ -41,7 +41,7 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
               // ==================== Header (disamakan dengan Register) ====================
               Container(
                 width: double.infinity,
-                height: 250,
+                padding: EdgeInsets.symmetric(vertical: 40, horizontal: 16),
                 decoration: const BoxDecoration(
                   color: Color(0xFF1A1AFF),
                   borderRadius: BorderRadius.only(
@@ -60,7 +60,7 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

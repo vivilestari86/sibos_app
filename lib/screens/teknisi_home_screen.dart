@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sibos_app/screens/pendapatan_teknisi_screen.dart';
+import 'package:sibos_app/screens/profile_teknisi_screen.dart';
+import 'package:sibos_app/screens/pekerjaan_baru_screen.dart';
+import 'package:sibos_app/screens/sedang_dikerjakan_screen.dart';
+import 'package:sibos_app/screens/pekerjaan_selesai_screen.dart';
+import 'package:sibos_app/screens/beranda_teknisi_screen.dart';
 
 class TeknisiHomeScreen extends StatefulWidget {
   const TeknisiHomeScreen({super.key});
@@ -12,10 +18,10 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
 
   // Daftar halaman tab bawah
   final List<Widget> _pages = [
-    const Center(child: Text("Beranda Teknisi")),
+    const BerandaTeknisiScreen(),
     const PekerjaanTab(),
-    const Center(child: Text("Pendapatan Teknisi")),
-    const Center(child: Text("Profil Teknisi")),
+    const PendapatanTeknisiScreen(),
+    const ProfileTeknisiScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -46,7 +52,8 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () {
               // Aksi logout
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(
+                  context, '/login', (route) => false);
             },
           ),
         ],
@@ -104,15 +111,19 @@ class PekerjaanTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          _buildPekerjaanCard("3", "Pekerjaan baru"),
-          _buildPekerjaanCard("2", "Sedang dikerjakan"),
-          _buildPekerjaanCard("4", "Selesai"),
+          _buildPekerjaanCard(
+              "3", "Pekerjaan baru", const PekerjaanBaruScreen(), context),
+          _buildPekerjaanCard("2", "Sedang dikerjakan",
+              const SedangDikerjakanScreen(), context),
+          _buildPekerjaanCard("4", "Selesai",
+              const PekerjaanSelesaiScreen(), context),
         ],
       ),
     );
   }
 
-  Widget _buildPekerjaanCard(String count, String title) {
+  Widget _buildPekerjaanCard(
+      String count, String title, Widget targetPage, BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -142,7 +153,12 @@ class PekerjaanTab extends StatelessWidget {
               backgroundColor: const Color(0xFF1A1AFF),
               foregroundColor: Colors.white,
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => targetPage),
+              );
+            },
             child: const Text("Selengkapnya"),
           ),
         ],
