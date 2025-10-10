@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sibos_app/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -32,24 +33,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _register() {
-    if (_formKey.currentState!.validate()) {
-      // nanti ini bisa diganti API call (http.post)
-      print("Nama: ${_namaController.text}");
-      print("Alamat: ${_alamatController.text}");
-      print("No HP: ${_noHpController.text}");
-      print("Gender: $gender");
-      print("Email: ${_emailController.text}");
-      print("Username: ${_usernameController.text}");
-      print("Password: ${_passwordController.text}");
+  void _register() async {
+  if (!_formKey.currentState!.validate()) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Berhasil daftar (dummy)!")),
-      );
-      // arahkan ke halaman login
+  if (gender == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Pilih jenis kelamin terlebih dahulu')),
+    );
+    return;
+  }
+
+  final result = await AuthService.register(
+    name: _namaController.text,
+    alamat: _alamatController.text,
+    noHp: _noHpController.text,
+    gender: gender!,
+    email: _emailController.text,
+    username: _usernameController.text,
+    password: _passwordController.text,
+  );
+
+  if (!mounted) return; // supaya aman kalau widget disposed saat menunggu response
+
+  if (result['message'] != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['message'])),
+    );
+
+    // kalau berhasil daftar, baru balik ke halaman login
+    if (result['message'].toString().toLowerCase().contains('berhasil')) {
       Navigator.pop(context);
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Gagal mendaftar")),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

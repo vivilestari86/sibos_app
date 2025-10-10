@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sibos_app/services/auth_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,20 +20,25 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
+  
+  void _login() async {
+  final result = await AuthService.login(
+    username: _usernameController.text,
+    password: _passwordController.text,
+  );
 
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      // nanti diganti dengan API call (http.post ke backend Laravel)
-      print("Username: ${_usernameController.text}");
-      print("Password: ${_passwordController.text}");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login berhasil (dummy)!")),
-      );
-      // pindah ke HomeScreen
+  if (result['token'] != null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login berhasil!')),
+    );
+    // pindah ke HomeScreen
       Navigator.pushReplacementNamed(context, '/home');
-    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['message'] ?? 'Login gagal')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
