@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'service_detail_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sibos_app/screens/service_detail_screen.dart';
+import 'package:sibos_app/services/layanan_service.dart';
+import 'package:sibos_app/config.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -10,84 +13,23 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-
-  final List<Map<String, String>> _services = [
-    {
-      "title": "Service Kulkas",
-      "image": "assets/images/service_kulkas.jpg",
-      "description":
-          "Kami menyediakan layanan service kulkas profesional untuk memperbaiki berbagai masalah pada kulkas Anda.\n\n"
-          "Keunggulan Layanan Kami:\n"
-          "- Teknisi berpengalaman dan terlatih\n"
-          "- Harga terjangkau\n"
-          "- Layanan cepat dan responsif\n\n"
-          "Proses Pengerjaan:\n"
-          "- Pemeriksaan awal untuk mengetahui masalah pada kulkas\n"
-          "- Perbaikan atau penggantian suku cadang yang rusak\n"
-          "- Pengujian kulkas untuk memastikan kinerja optimal",
-    },
-    {
-      "title": "Service AC",
-      "image": "assets/images/service_AC.jpg",
-      "description":
-          "Layanan service AC profesional untuk menjaga performa dan kenyamanan ruangan Anda.\n\n"
-          "Keunggulan Layanan Kami:\n"
-          "- Teknisi bersertifikat dan berpengalaman\n"
-          "- Harga terjangkau\n"
-          "- Layanan cepat dan responsif\n\n"
-          "Proses Pengerjaan:\n"
-          "- Pemeriksaan unit AC untuk mengetahui masalah\n"
-          "- Pembersihan atau perbaikan komponen yang bermasalah\n"
-          "- Pengujian AC untuk memastikan pendinginan optimal",
-    },
-    {
-      "title": "Service Mesin Cuci",
-      "image": "assets/images/service_mesin_cuci.jpg",
-      "description":
-          "Perbaikan dan maintenance mesin cuci dengan layanan profesional.\n\n"
-          "Keunggulan Layanan Kami:\n"
-          "- Teknisi berpengalaman\n"
-          "- Harga terjangkau\n"
-          "- Layanan cepat dan responsif\n\n"
-          "Proses Pengerjaan:\n"
-          "- Pemeriksaan mesin cuci untuk mendeteksi kerusakan\n"
-          "- Perbaikan atau penggantian suku cadang\n"
-          "- Pengujian mesin cuci untuk memastikan berfungsi optimal",
-    },
-    {
-      "title": "Cleaning Service Harian",
-      "image": "assets/images/cleaning_service_harian.jpg",
-      "description":
-          "Layanan cleaning service harian untuk rumah, kantor, atau apartemen.\n\n"
-          "Keunggulan Layanan Kami:\n"
-          "- Tenaga profesional dan terpercaya\n"
-          "- Harga terjangkau\n"
-          "- Layanan cepat dan sesuai jadwal\n\n"
-          "Proses Pengerjaan:\n"
-          "- Pembersihan area sesuai kebutuhan\n"
-          "- Penggunaan alat dan bahan yang aman\n"
-          "- Pemeriksaan akhir untuk memastikan kebersihan maksimal",
-    },
-  ];
-
-  List<Map<String, String>> _filteredServices = [];
+  List<dynamic> _filteredServices = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _filteredServices = _services;
+    _fetchLayanan();
   }
 
-  void _filterServices(String query) {
+  Future<void> _fetchLayanan({String? query}) async {
     setState(() {
-      if (query.isEmpty) {
-        _filteredServices = _services;
-      } else {
-        _filteredServices = _services
-            .where((service) =>
-                service["title"]!.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
+      _loading = true;
+    });
+    final result = await LayananService.fetchLayanan(search: query);
+    setState(() {
+      _filteredServices = result;
+      _loading = false;
     });
   }
 
@@ -96,10 +38,9 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Header
           Container(
             width: double.infinity,
-            height: 200,
+            height: 220,
             decoration: const BoxDecoration(
               color: Color(0xFF1A1AFF),
               borderRadius: BorderRadius.only(
@@ -109,60 +50,60 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             child: SafeArea(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    // 👉 NOTIFIKASI DIHAPUS, tinggal icon home aja
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Icon(Icons.home, color: Colors.white, size: 30),
+                        Icon(Icons.search, color: Colors.white, size: 30),
                       ],
                     ),
-                    SizedBox(height: 20),
+                    Spacer(),
                     Center(
-                      child: Text(
-                        "Selamat Datang\ndi Layanan Service Rumah Tangga",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Cari Layanan yang Kamu Butuhkan",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "Temukan layanan rumah tangga terbaik di sini",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 5),
-                    Center(
-                      child: Text(
-                        "Nikmati layanan kami sesuai kebutuhan anda",
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                    ),
+                    Spacer(),
                   ],
                 ),
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Search Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: TextField(
               controller: _searchController,
-              onChanged: _filterServices,
+              onChanged: (val) {
+                _fetchLayanan(query: val);
+              },
               decoration: InputDecoration(
-                hintText: "Cari Layanan",
+                hintText: "Cari berdasarkan jenis layanan...",
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
-                          _filterServices("");
+                          _fetchLayanan(query: "");
                         },
                       )
                     : null,
@@ -172,28 +113,34 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Grid hasil pencarian
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _filteredServices.isEmpty
-                  ? const Center(child: Text("Layanan tidak ditemukan"))
-                  : GridView.count(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      children: _filteredServices
-                          .map((service) => _serviceCard(
-                                context,
-                                service["title"]!,
-                                service["image"]!,
-                                service["description"]!,
-                              ))
-                          .toList(),
-                    ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredServices.isEmpty
+                      ? const Center(child: Text("Layanan tidak ditemukan"))
+                      : GridView.builder(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.8,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                          ),
+                          itemCount: _filteredServices.length,
+                          itemBuilder: (context, index) {
+                            final item = _filteredServices[index];
+                            return _serviceCard(
+                              context: context,
+                              id: item['id'],
+                              title: item['jenis_layanan'] ?? '-',
+                              imagePath: item['gambar'] ?? 'assets/images/default.jpg',
+                              description: item['deskripsi'] ?? '',
+                              harga: item['harga'] ?? 0,
+                            );
+                          },
+                        ),
             ),
           ),
         ],
@@ -201,17 +148,50 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  static Widget _serviceCard(
-      BuildContext context, String title, String imagePath, String description) {
+  Widget _serviceCard({
+    required BuildContext context,
+    required int id,
+    required String title,
+    required String imagePath,
+    required String description,
+    required int harga,
+  }) {
+    Widget imageWidget;
+
+    if (imagePath.startsWith('http')) {
+      imageWidget = ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        child: CachedNetworkImage(
+          imageUrl: imagePath,
+          fit: BoxFit.cover,
+          placeholder: (c, s) => const Center(child: CircularProgressIndicator()),
+          errorWidget: (c, s, e) =>
+              Image.asset('assets/images/default.jpg', fit: BoxFit.cover),
+        ),
+      );
+    } else {
+      imageWidget = ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        child: Image.network('${AppConfig.baseUrl.replaceFirst("/api", "")}/storage/$imagePath',
+            fit: BoxFit.cover, errorBuilder: (c, e, s) {
+          return Image.asset('assets/images/default.jpg', fit: BoxFit.cover);
+        }),
+      );
+    }
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => ServiceDetailScreen(
+              serviceId: id,
               title: title,
-              imagePath: imagePath,
               description: description,
+              imagePath: imagePath.startsWith('http')
+                  ? imagePath
+                  : '${AppConfig.baseUrl.replaceFirst("/api", "")}/storage/$imagePath',
+              harga: harga,
             ),
           ),
         );
@@ -221,23 +201,13 @@ class _SearchScreenState extends State<SearchScreen> {
           borderRadius: BorderRadius.circular(12),
           color: Colors.white,
           boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: Offset(2, 2),
-            ),
+            BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(2, 2)),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.asset(imagePath, fit: BoxFit.cover),
-              ),
-            ),
+            Expanded(child: imageWidget),
             Container(
               padding: const EdgeInsets.all(8),
               color: const Color(0xFF1A1AFF),

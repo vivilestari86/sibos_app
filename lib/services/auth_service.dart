@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sibos_app/config.dart';
+
 
 class AuthService {
   // 🔸 Ganti IP sesuai server Laravel kamu
-  static const String baseUrl = "http://10.0.170.119:8000/api";
+   static const String baseUrl = AppConfig.baseUrl;
 
   // 📝 REGISTER CUSTOMER
   static Future<Map<String, dynamic>> register({

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sibos_app/screens/profil_screen.dart';
 import 'package:sibos_app/screens/teknisi_form_screen.dart';
-import 'search_screen.dart';
-import 'service_detail_screen.dart'; 
-import 'chat_screen.dart';
-// ignore: duplicate_import
-import 'profil_screen.dart';
+import 'package:sibos_app/screens/search_screen.dart';
+import 'package:sibos_app/screens/service_detail_screen.dart';
+import 'package:sibos_app/screens/chat_screen.dart';
+import 'package:sibos_app/services/layanan_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,15 +21,13 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.pushReplacementNamed(context, "/login");
   }
 
-  // Daftar halaman/tab
   late final List<Widget> _pages = [
-  _berandaTab(), // tab 0: Beranda
-  const SearchScreen(), // tab 1: Pencarian
-  const TeknisiFormScreen(),  
-  const ChatScreen(), // tab 3: Chat
-  const ProfileScreen(),
-];
-
+    _berandaTab(), // Tab 0: Beranda
+    const SearchScreen(), // Tab 1: Pencarian
+    const TeknisiFormScreen(), // Tab 2: Form Teknisi
+    const ChatScreen(), // Tab 3: Chat
+    const ProfileScreen(), // Tab 4: Profil
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -60,162 +58,165 @@ class _HomeScreenState extends State<HomeScreen> {
   // Tab Beranda
   // ============================
   Widget _berandaTab() {
-    return Column(
-      children: [
-        // Header
-        Container(
-          width: double.infinity,
-          height: 220,
-          decoration: const BoxDecoration(
-            color: Color(0xFF1A1AFF),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(50),
-              bottomRight: Radius.circular(50),
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return FutureBuilder<List<dynamic>>(
+      future: LayananService.fetchLayanan(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text("Terjadi kesalahan: ${snapshot.error}"));
+        }
+
+        final layanans = snapshot.data ?? [];
+
+        return Column(
+          children: [
+            // Header
+            Container(
+              width: double.infinity,
+              height: 220,
+              decoration: const BoxDecoration(
+                color: Color(0xFF1A1AFF),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(50),
+                  bottomRight: Radius.circular(50),
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
                     children: [
-                      const Icon(Icons.home, color: Colors.white, size: 30),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(context, "/notifications");
-                            },
-                            child: const Icon(Icons.notifications, color: Colors.white, size: 28),
-                          ),
-                          const SizedBox(width: 16),
-                          GestureDetector(
-                            onTap: () => _logout(context),
-                            child: const Icon(Icons.logout, color: Colors.white, size: 28),
+                          const Icon(Icons.home, color: Colors.white, size: 30),
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(context, "/notifications");
+                                },
+                                child: const Icon(Icons.notifications, color: Colors.white, size: 28),
+                              ),
+                              const SizedBox(width: 16),
+                              GestureDetector(
+                                onTap: () => _logout(context),
+                                child: const Icon(Icons.logout, color: Colors.white, size: 28),
+                              ),
+                            ],
                           ),
                         ],
                       ),
+                      const Spacer(),
+                      const Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              "Selamat Datang\ndi Layanan Service Rumah Tangga",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              "Nikmati layanan kami sesuai kebutuhan anda",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
                     ],
                   ),
-                  const Spacer(),
-                  const Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          "Selamat Datang\ndi Layanan Service Rumah Tangga",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          "Nikmati layanan kami sesuai kebutuhan anda",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(height: 20),
-        // Grid layanan
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GridView.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              children: [
-                _serviceCard(
-              context,
-              "Service Kulkas",
-              "assets/images/service_kulkas.jpg",
-              "Kami menyediakan layanan service kulkas profesional untuk memperbaiki berbagai masalah pada kulkas Anda.\n\n"
-              "Keunggulan Layanan Kami:\n"
-              "- Teknisi berpengalaman dan terlatih\n"
-              "- Harga terjangkau\n"
-              "- Layanan cepat dan responsif\n\n"
-              "Proses Pengerjaan:\n"
-              "- Pemeriksaan awal untuk mengetahui masalah pada kulkas\n"
-              "- Perbaikan atau penggantian suku cadang yang rusak\n"
-              "- Pengujian kulkas untuk memastikan kinerja optimal",
-            ),
-            _serviceCard(
-              context,
-              "Service AC",
-              "assets/images/service_AC.jpg",
-              "Layanan service AC profesional untuk menjaga performa dan kenyamanan ruangan Anda.\n\n"
-              "Keunggulan Layanan Kami:\n"
-              "- Teknisi bersertifikat dan berpengalaman\n"
-              "- Harga terjangkau\n"
-              "- Layanan cepat dan responsif\n\n"
-              "Proses Pengerjaan:\n"
-              "- Pemeriksaan unit AC untuk mengetahui masalah\n"
-              "- Pembersihan atau perbaikan komponen yang bermasalah\n"
-              "- Pengujian AC untuk memastikan pendinginan optimal",
-            ),
-            _serviceCard(
-              context,
-              "Service Mesin Cuci",
-              "assets/images/service_mesin_cuci.jpg",
-              "Perbaikan dan maintenance mesin cuci dengan layanan profesional.\n\n"
-              "Keunggulan Layanan Kami:\n"
-              "- Teknisi berpengalaman\n"
-              "- Harga terjangkau\n"
-              "- Layanan cepat dan responsif\n\n"
-              "Proses Pengerjaan:\n"
-              "- Pemeriksaan mesin cuci untuk mendeteksi kerusakan\n"
-              "- Perbaikan atau penggantian suku cadang\n"
-              "- Pengujian mesin cuci untuk memastikan berfungsi optimal",
-            ),
-            _serviceCard(
-              context,
-              "Cleaning Service Harian",
-              "assets/images/cleaning_service_harian.jpg",
-              "Layanan cleaning service harian untuk rumah, kantor, atau apartemen.\n\n"
-              "Keunggulan Layanan Kami:\n"
-              "- Tenaga profesional dan terpercaya\n"
-              "- Harga terjangkau\n"
-              "- Layanan cepat dan sesuai jadwal\n\n"
-              "Proses Pengerjaan:\n"
-              "- Pembersihan area sesuai kebutuhan\n"
-              "- Penggunaan alat dan bahan yang aman\n"
-              "- Pemeriksaan akhir untuk memastikan kebersihan maksimal",
-            ),
 
-              ],
+            const SizedBox(height: 20),
+
+            // Grid layanan
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: layanans.isEmpty
+                    ? const Center(child: Text("Tidak ada layanan tersedia"))
+                    : GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.8,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                        ),
+                        itemCount: layanans.length,
+                        itemBuilder: (context, index) {
+                          final layanan = layanans[index];
+                          return _serviceCard(
+                            context: context,
+                            id: layanan['id'],
+                            title: layanan['jenis_layanan'] ?? '-',
+                            imagePath: layanan['gambar'] ?? 'assets/images/default.jpg',
+                            description: layanan['deskripsi'] ?? '',
+                            harga: layanan['harga'] ?? 0,
+                          );
+                        },
+                      ),
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
   // ============================
-  // Widget service card dengan onTap
+  // Widget Card Layanan
   // ============================
-  Widget _serviceCard(
-      BuildContext context, String title, String imagePath, String description) {
+  Widget _serviceCard({
+    required BuildContext context,
+    required int id,
+    required String title,
+    required String imagePath,
+    required String description,
+    required int harga,
+  }) {
+    Widget imageWidget;
+
+    if (imagePath.startsWith('http')) {
+      imageWidget = ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        child: CachedNetworkImage(
+          imageUrl: imagePath,
+          fit: BoxFit.cover,
+          placeholder: (c, s) => const Center(child: CircularProgressIndicator()),
+          errorWidget: (c, s, e) =>
+              Image.asset('assets/images/default.jpg', fit: BoxFit.cover),
+        ),
+      );
+    } else {
+      imageWidget = ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        child: Image.asset(imagePath, fit: BoxFit.cover),
+      );
+    }
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => ServiceDetailScreen(
+              serviceId: id, // ✅ kirim ID layanan
               title: title,
               imagePath: imagePath,
               description: description,
+              harga: harga,
             ),
           ),
         );
@@ -231,12 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.asset(imagePath, fit: BoxFit.cover),
-              ),
-            ),
+            Expanded(child: imageWidget),
             Container(
               padding: const EdgeInsets.all(8),
               color: const Color(0xFF1A1AFF),
