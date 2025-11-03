@@ -1,35 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:sibos_app/services/auth_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  const EditProfileScreen({super.key, required Map initialData});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _namaController =
-      TextEditingController(text: "Vivi Lestari");
-  final TextEditingController _alamatController = TextEditingController(
-      text:
-          "Blok Kali kulon, RT 014/ RW 007, Desa Drunten wetan, Kec. Gabuswetan, Kab. Indramayu");
-  final TextEditingController _noHpController =
-      TextEditingController(text: "0812-8082-3794");
-  final TextEditingController _emailController =
-      TextEditingController(text: "vivilestari@gmail.com");
-
+  final TextEditingController _namaController = TextEditingController();
+  final TextEditingController _alamatController = TextEditingController();
+  final TextEditingController _noHpController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   String _jenisKelamin = "Perempuan";
+  bool isLoading = true;
 
-  void _simpanPerubahan() {
-    // Nanti ini bisa dihubungkan ke backend API Laravel
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Perubahan profil berhasil disimpan')),
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    final data = await AuthService.getProfile();
+    setState(() {
+      _namaController.text = data['name'] ?? '';
+      _alamatController.text = data['alamat'] ?? '';
+      _noHpController.text = data['no_hp'] ?? '';
+      _emailController.text = data['email'] ?? '';
+      _jenisKelamin = data['gender'] ?? 'Perempuan';
+      isLoading = false;
+    });
+  }
+
+  Future<void> _simpanPerubahan() async {
+    final result = await AuthService.updateProfile(
+      name: _namaController.text,
+      alamat: _alamatController.text,
+      noHp: _noHpController.text,
+      gender: _jenisKelamin,
+      email: _emailController.text,
     );
-    Navigator.pop(context); // kembali ke halaman profil
+
+    if (result['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profil berhasil diperbarui')),
+      );
+      Navigator.pop(context, true); // kirim 'true' biar profil reload
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Gagal memperbarui profil')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: Color(0xFF1A1AFF))),
+      );
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -50,7 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Icon(Icons.person, size: 80, color: Colors.white),
                   SizedBox(height: 8),
                   Text(
-                    "PROFIL SAYA",
+                    "EDIT PROFIL",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,

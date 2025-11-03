@@ -14,7 +14,7 @@ class RiwayatPemesananScreen extends StatefulWidget {
 
 class _RiwayatPemesananScreenState extends State<RiwayatPemesananScreen> {
   final Color primaryBlue = const Color(0xFF1A1AFF);
-  int _currentIndex = 0;
+  
   bool _isLoading = true;
   List<dynamic> _orders = [];
 
@@ -86,29 +86,6 @@ class _RiwayatPemesananScreenState extends State<RiwayatPemesananScreen> {
     }
   }
 
-  void _onNavTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/home');
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/search');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/teknisi');
-        break;
-      case 3:
-        Navigator.pushReplacementNamed(context, '/chat');
-        break;
-      case 4:
-        Navigator.pushReplacementNamed(context, '/profile');
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,20 +124,7 @@ class _RiwayatPemesananScreenState extends State<RiwayatPemesananScreen> {
                     },
                   ),
                 ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: primaryBlue,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        onTap: _onNavTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Pencarian'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_box), label: 'Daftar Teknisi'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-        ],
-      ),
+
     );
   }
 
