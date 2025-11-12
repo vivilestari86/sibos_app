@@ -13,18 +13,17 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
 
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _alamatController = TextEditingController();
-  final TextEditingController _noHpController = TextEditingController();
-  String? _jenisKelamin;
+  final TextEditingController _teleponController = TextEditingController();
+  final TextEditingController _pengalamanController = TextEditingController();
+  final TextEditingController _sertifikatController = TextEditingController();
   String? _keahlian;
-
-  final List<String> _jenisKelaminList = ['Laki-laki', 'Perempuan'];
 
   final List<String> _keahlianList = [
     'Service AC',
     'Service Kulkas',
     'Service Mesin Cuci',
     'Service TV',
-    'Service Kipas',
+    'Service Kipas Angin',
     'Instalasi Listrik',
     'Cleaning Service Harian',
   ];
@@ -57,7 +56,7 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
                       Icon(Icons.home_repair_service, color: Colors.white, size: 50),
                       SizedBox(height: 10),
                       Text(
-                        "Selamat Datang\nHalaman Teknisi Layanan Rumah Tangga",
+                        "Pendaftaran Teknisi Layanan Rumah Tangga",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -67,7 +66,7 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
                       ),
                       SizedBox(height: 5),
                       Text(
-                        "Daftarkan diri sesuai dengan keahlian Anda",
+                        "Lengkapi data berikut sesuai pengalaman dan sertifikat Anda",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white70,
@@ -82,7 +81,7 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
 
               // ==================== Judul Form ====================
               const Text(
-                "FORM PENGAJUAN TEKNISI",
+                "FORM PENDAFTARAN TEKNISI",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -98,49 +97,38 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
                   key: _formKey,
                   child: Column(
                     children: [
+                      // Nama
                       TextFormField(
                         controller: _namaController,
                         decoration: const InputDecoration(labelText: "Nama Lengkap"),
                         validator: (value) =>
-                            value!.isEmpty ? "Nama wajib diisi" : null,
+                            value == null || value.isEmpty ? "Nama wajib diisi" : null,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 15),
+
+                      // Alamat
                       TextFormField(
                         controller: _alamatController,
                         decoration: const InputDecoration(labelText: "Alamat"),
                         validator: (value) =>
-                            value!.isEmpty ? "Alamat wajib diisi" : null,
+                            value == null || value.isEmpty ? "Alamat wajib diisi" : null,
                       ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        value: _jenisKelamin,
-                        hint: const Text("Jenis Kelamin"),
-                        items: _jenisKelaminList
-                            .map((e) => DropdownMenuItem(
-                                  value: e,
-                                  child: Text(e),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _jenisKelamin = value;
-                          });
-                        },
-                        validator: (value) =>
-                            value == null ? "Pilih jenis kelamin" : null,
-                      ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 15),
+
+                      // Telepon
                       TextFormField(
-                        controller: _noHpController,
+                        controller: _teleponController,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(labelText: "No. Handphone"),
+                        decoration: const InputDecoration(labelText: "Telepon"),
                         validator: (value) =>
-                            value!.isEmpty ? "No. HP wajib diisi" : null,
+                            value == null || value.isEmpty ? "Telepon wajib diisi" : null,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 15),
+
+                      // Dropdown Keahlian
                       DropdownButtonFormField<String>(
                         value: _keahlian,
-                        hint: const Text("Keahlian"),
+                        hint: const Text("Pilih Keahlian"),
                         items: _keahlianList
                             .map((e) => DropdownMenuItem(
                                   value: e,
@@ -153,11 +141,40 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
                           });
                         },
                         validator: (value) =>
-                            value == null ? "Pilih keahlian" : null,
+                            value == null ? "Pilih salah satu keahlian" : null,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
 
-                      // ==================== Tombol Kirim ====================
+                      // Pengalaman
+                      TextFormField(
+                        controller: _pengalamanController,
+                        keyboardType: TextInputType.text,
+                        decoration: const InputDecoration(
+                          labelText: "Pengalaman Kerja (contoh: 2 tahun di bidang AC)",
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Pengalaman wajib diisi";
+                          }
+                          if (!value.toLowerCase().contains("tahun")) {
+                            return "Tuliskan pengalaman minimal 1 tahun kerja (gunakan format tahun)";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 15),
+
+                      // Sertifikat
+                      TextFormField(
+                        controller: _sertifikatController,
+                        keyboardType: TextInputType.text,
+                        decoration: const InputDecoration(
+                          labelText: "Nama atau Link Sertifikat (opsional)",
+                        ),
+                      ),
+                      const SizedBox(height: 25),
+
+                      // Tombol Kirim
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -204,9 +221,12 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
       final result = await AuthService.registerAsTechnician(
         nama: _namaController.text,
         alamat: _alamatController.text,
-        jenisKelamin: _jenisKelamin!,
-        noTelepon: _noHpController.text,
+        telepon: _teleponController.text,
         keahlian: _keahlian!,
+        pengalaman: _pengalamanController.text,
+        sertifikat: _sertifikatController.text.isNotEmpty
+            ? _sertifikatController.text
+            : null,
       );
 
       setState(() => _isLoading = false);
@@ -214,7 +234,8 @@ class _TeknisiFormScreenState extends State<TeknisiFormScreen> {
       if (!mounted) return;
 
       if (result['success'] == true ||
-          (result['message']?.toString().toLowerCase().contains('berhasil') ?? false)) {
+          (result['message']?.toString().toLowerCase().contains('berhasil') ??
+              false)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pendaftaran teknisi berhasil ✅')),
         );

@@ -3,10 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sibos_app/config.dart';
 
-
 class AuthService {
-  // 🔸 Ganti IP sesuai server Laravel kamu
-   static const String baseUrl = AppConfig.baseUrl;
+  // 🔸 Base URL backend Laravel
+  static const String baseUrl = AppConfig.baseUrl;
 
   // 📝 REGISTER CUSTOMER
   static Future<Map<String, dynamic>> register({
@@ -41,15 +40,11 @@ class AuthService {
       if (response.headers['content-type']?.contains('application/json') == true) {
         return jsonDecode(response.body);
       } else {
-        return {
-          'message': 'Respons server bukan JSON. Cek route Laravel atau URL.',
-        };
+        return {'message': 'Respons server bukan JSON. Cek route Laravel atau URL.'};
       }
     } catch (e) {
       print("❌ Error saat register: $e");
-      return {
-        'message': 'Gagal terhubung ke server. Pastikan backend jalan & IP benar.',
-      };
+      return {'message': 'Gagal terhubung ke server. Pastikan backend jalan & IP benar.'};
     }
   }
 
@@ -63,13 +58,8 @@ class AuthService {
     try {
       final response = await http.post(
         url,
-        headers: {
-          'Accept': 'application/json',
-        },
-        body: {
-          "username": username,
-          "password": password,
-        },
+        headers: {'Accept': 'application/json'},
+        body: {"username": username, "password": password},
       );
 
       print("🔹 Login Status code: ${response.statusCode}");
@@ -77,12 +67,10 @@ class AuthService {
 
       if (response.headers['content-type']?.contains('application/json') == true) {
         final data = jsonDecode(response.body);
-
         if (response.statusCode == 200 && data['token'] != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', data['token']);
         }
-
         return data;
       } else {
         return {'message': 'Respons server bukan JSON. Periksa URL API.'};
@@ -93,133 +81,72 @@ class AuthService {
     }
   }
 
-  // 🧰 REGISTER TEKNISI (setelah login customer)
-  static Future<Map<String, dynamic>> registerAsTechnician({
-    required String nama,
-    required String alamat,
-    required String jenisKelamin,
-    required String noTelepon,
-    required String keahlian,
-  }) async {
+  // 📝 AMBIL PROFILE USER
+  static Future<Map<String, dynamic>> getProfile() async {
     final token = await getToken();
-    final url = Uri.parse("$baseUrl/teknisi/register");
+    final url = Uri.parse("$baseUrl/profile");
 
     try {
-      final response = await http.post(
+      final response = await http.get(
         url,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: {
-  "nama": nama,
-  "alamat": alamat,
-  "jenis_kelamin": jenisKelamin,
-  "telepon": noTelepon,
-  "keahlian": keahlian,
-},
-
+        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
       );
 
-      print("🔹 Teknisi Status code: ${response.statusCode}");
-      print("🔸 Teknisi Response: ${response.body}");
+      print("🔹 Profile Status code: ${response.statusCode}");
+      print("🔸 Profile Response: ${response.body}");
 
       if (response.headers['content-type']?.contains('application/json') == true) {
-        return jsonDecode(response.body);
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        }
+        return {'message': data['message'] ?? 'Data profil tidak ditemukan'};
       } else {
-        return {
-          'message': 'Respons server bukan JSON. Periksa route Laravel /teknisi/register.',
-        };
+        return {'message': 'Respons server bukan JSON. Periksa route /profile.'};
       }
     } catch (e) {
-      print("❌ Error saat daftar teknisi: $e");
+      print("❌ Error saat ambil profil: $e");
       return {'message': 'Gagal terhubung ke server.'};
     }
   }
 
-  // 📝 Ambil Profil User
-  static Future<Map<String, dynamic>> getProfile() async {
-  final token = await getToken();
-  final url = Uri.parse("$baseUrl/profile");
+  // 📝 UPDATE PROFILE USER
+  static Future<Map<String, dynamic>> updateProfile({
+    required String name,
+    required String alamat,
+    required String noHp,
+    required String gender,
+    required String email,
+  }) async {
+    final token = await getToken();
+    final url = Uri.parse("$baseUrl/profile/update");
 
-  try {
-    final response = await http.get(
-      url,
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+        body: {
+          "name": name,
+          "alamat": alamat,
+          "no_hp": noHp,
+          "gender": gender,
+          "email": email,
+        },
+      );
 
-    print("🔹 Profile Status code: ${response.statusCode}");
-    print("🔸 Profile Response: ${response.body}");
+      print("🔹 Update Profile Status code: ${response.statusCode}");
+      print("🔸 Update Profile Response: ${response.body}");
 
-    if (response.headers['content-type']?.contains('application/json') == true) {
-      final data = jsonDecode(response.body);
-      // ambil langsung objek user-nya
-      if (data['success'] == true && data['data'] != null) {
-        return data['data'];
+      if (response.headers['content-type']?.contains('application/json') == true) {
+        return jsonDecode(response.body);
+      } else {
+        return {'success': false, 'message': 'Respons server bukan JSON. Periksa route /profile/update.'};
       }
-      return {'message': data['message'] ?? 'Data profil tidak ditemukan'};
-    } else {
-      return {'message': 'Respons server bukan JSON. Periksa route /profile.'};
+    } catch (e) {
+      print("❌ Error saat update profil: $e");
+      return {'success': false, 'message': 'Gagal terhubung ke server.'};
     }
-  } catch (e) {
-    print("❌ Error saat ambil profil: $e");
-    return {'message': 'Gagal terhubung ke server.'};
   }
-}
-
-
-
-  // 📝 UPDATE PROFIL USER
-static Future<Map<String, dynamic>> updateProfile({
-  required String name,
-  required String alamat,
-  required String noHp,
-  required String gender,
-  required String email,
-}) async {
-  final token = await getToken();
-  final url = Uri.parse("$baseUrl/profile/update");
-
-  try {
-    final response = await http.put(
-      url,
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: {
-        "name": name,
-        "alamat": alamat,
-        "no_hp": noHp,
-        "gender": gender,
-        "email": email,
-      },
-    );
-
-    print("🔹 Update Profile Status code: ${response.statusCode}");
-    print("🔸 Update Profile Response: ${response.body}");
-
-    if (response.headers['content-type']?.contains('application/json') == true) {
-      final data = jsonDecode(response.body);
-      return data;
-    } else {
-      return {
-        'success': false,
-        'message': 'Respons server bukan JSON. Periksa route /profile/update di Laravel.',
-      };
-    }
-  } catch (e) {
-    print("❌ Error saat update profil: $e");
-    return {
-      'success': false,
-      'message': 'Gagal terhubung ke server. Pastikan backend jalan & IP benar.',
-    };
-  }
-}
-
 
   // 📝 LOGOUT
   static Future<void> logout() async {
@@ -227,9 +154,47 @@ static Future<Map<String, dynamic>> updateProfile({
     await prefs.remove('token');
   }
 
-  // 📝 Ambil token tersimpan
+  // 📝 AMBIL TOKEN TERSIMPAN
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
+
+  // 🧰 REGISTER TEKNISI
+  static Future<Map<String, dynamic>> registerAsTechnician({
+  required String nama,
+  required String alamat,
+  required String telepon,
+  required String keahlian,
+  required String pengalaman,
+  String? sertifikat,
+}) async {
+  final token = await getToken();
+  final url = Uri.parse("$baseUrl/teknisi/register");
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+      body: {
+        "alamat": alamat,
+        "telepon": telepon,
+        "keahlian": keahlian,
+        "pengalaman": pengalaman,
+        if (sertifikat != null) "sertifikat": sertifikat,
+      },
+    );
+
+    print("🔹 Teknisi Register Status code: ${response.statusCode}");
+    print("🔸 Teknisi Register Response: ${response.body}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return {"success": true, "message": "Pendaftaran teknisi berhasil", "data": jsonDecode(response.body)};
+    } else {
+      return {"success": false, "message": jsonDecode(response.body)['message'] ?? "Gagal daftar teknisi"};
+    }
+  } catch (e) {
+    return {"success": false, "message": "Terjadi kesalahan: $e"};
+  }
+}
 }
