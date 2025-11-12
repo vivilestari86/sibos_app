@@ -150,10 +150,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-                      child: const Text(
-                        "Belum Memiliki Akun? Daftar",
-                        style: TextStyle(color: Colors.black),
+                      child: const Text.rich(
+                        TextSpan(
+                          text: "Belum Memiliki Akun? ",
+                          style: TextStyle(color: Colors.black),
+                          children: [
+                            TextSpan(
+                              text: "Daftar disini",
+                              style: TextStyle(
+                                color: Color(0xFF1A1AFF),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+
                     ),
                   ],
                 ),

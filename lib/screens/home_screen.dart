@@ -4,7 +4,6 @@ import 'package:sibos_app/screens/profil_screen.dart';
 import 'package:sibos_app/screens/teknisi_form_screen.dart';
 import 'package:sibos_app/screens/search_screen.dart';
 import 'package:sibos_app/screens/service_detail_screen.dart';
-import 'package:sibos_app/screens/chat_screen.dart';
 import 'package:sibos_app/services/layanan_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -25,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _berandaTab(), // Tab 0: Beranda
     const SearchScreen(), // Tab 1: Pencarian
     const TeknisiFormScreen(), // Tab 2: Form Teknisi
-    const ChatScreen(), // Tab 3: Chat
     const ProfileScreen(), // Tab 4: Profil
   ];
 
@@ -47,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: "Pencarian"),
           BottomNavigationBarItem(icon: Icon(Icons.add_box), label: "Daftar Teknisi"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),

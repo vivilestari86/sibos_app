@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:sibos_app/config.dart';
+import 'package:sibos_app/screens/midtrans_payment_screen.dart';
 
 class DetailPemesananScreen extends StatefulWidget {
   final int serviceId;
@@ -34,7 +35,6 @@ class _DetailPemesananScreenState extends State<DetailPemesananScreen> {
 
   final primaryBlue = const Color(0xFF1A1AFF);
 
-  // ✅ Gunakan baseUrl dari config.dart agar konsisten di seluruh project
   final String baseUrl = AppConfig.baseUrl;
   final String imageBaseUrl = AppConfig.imageBaseUrl;
 
@@ -52,7 +52,6 @@ class _DetailPemesananScreenState extends State<DetailPemesananScreen> {
     setState(() => _isLoading = false);
   }
 
-  // ✅ Ambil profil user yang login
   Future<void> _fetchCustomerProfile() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -78,7 +77,6 @@ class _DetailPemesananScreenState extends State<DetailPemesananScreen> {
     }
   }
 
-  // ✅ Ambil detail layanan berdasarkan ID
   Future<void> _fetchServiceDetail(int id) async {
     try {
       final response = await http.get(
@@ -97,7 +95,6 @@ class _DetailPemesananScreenState extends State<DetailPemesananScreen> {
     }
   }
 
-  // ✅ Pilih tanggal
   Future<void> _pickDate() async {
     final DateTime now = DateTime.now();
     final picked = await showDatePicker(
@@ -110,7 +107,6 @@ class _DetailPemesananScreenState extends State<DetailPemesananScreen> {
     if (picked != null) setState(() => _selectedDate = picked);
   }
 
-  // ✅ Pilih waktu
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
       context: context,
@@ -120,7 +116,97 @@ class _DetailPemesananScreenState extends State<DetailPemesananScreen> {
     if (picked != null) setState(() => _selectedTime = picked);
   }
 
-  // ✅ Kirim pesanan ke backend
+  // ✅ Fungsi buat pesanan setelah pembayaran Midtrans sukses
+  Future<void> buatPesananSetelahPembayaran() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) throw Exception("Token tidak ditemukan");
+
+      final jadwalService = DateFormat('yyyy-MM-dd HH:mm:ss').format(
+        DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
+        ),
+      );
+
+      final harga = _serviceData?['harga'] ?? 0;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/pemesanan'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'layanan_id': widget.serviceId,
+          'jadwal_service': jadwalService,
+          'total_harga': harga,
+          'metode_pembayaran': 'Transfer',
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+      debugPrint("✅ Pesanan dibuat setelah pembayaran Midtrans: $data");
+    } catch (e) {
+      debugPrint('❌ Gagal buat pesanan setelah pembayaran: $e');
+    }
+  }
+
+  // ✅ Fungsi bayar dengan Midtrans
+  Future<void> _bayarDenganMidtrans(int totalHarga) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) throw Exception("Token tidak ditemukan");
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/midtrans/token'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: {
+          'total_harga': totalHarga.toString(),
+          'nama': _customerData?['name'] ?? '',
+          'email': _customerData?['email'] ?? '',
+          'no_hp': _customerData?['no_hp'] ?? '',
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        final snapToken = data['token'];
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MidtransPaymentScreen(
+              snapToken: snapToken,
+              onPaymentSuccess: () async {
+                await buatPesananSetelahPembayaran();
+                
+              },
+            ),
+          ),
+        );
+      } else {
+        throw Exception(data['message'] ?? 'Gagal mendapatkan token Midtrans');
+      }
+    } catch (e) {
+      debugPrint("❌ Error Midtrans: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menghubungkan ke Midtrans: $e')),
+      );
+    }
+  }
+
+  // ✅ Fungsi buat pesanan manual (Cash)
   Future<void> _buatPesanan() async {
     if (_selectedDate == null || _selectedTime == null || _selectedPayment == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -382,7 +468,16 @@ class _DetailPemesananScreenState extends State<DetailPemesananScreen> {
 
                   // 🚀 Tombol Buat Pesanan
                   ElevatedButton(
-                    onPressed: _isSubmitting ? null : _buatPesanan,
+                    onPressed: _isSubmitting
+                        ? null
+                        : () async {
+                            if (_selectedPayment == 'Transfer') {
+                              final harga = _serviceData?['harga'] ?? 0;
+                              await _bayarDenganMidtrans(harga);
+                            } else {
+                              await _buatPesanan();
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryBlue,
                       padding: const EdgeInsets.symmetric(vertical: 14),

@@ -139,31 +139,87 @@ class AuthService {
 
   // 📝 Ambil Profil User
   static Future<Map<String, dynamic>> getProfile() async {
-    final token = await getToken();
-    final url = Uri.parse("$baseUrl/profile");
+  final token = await getToken();
+  final url = Uri.parse("$baseUrl/profile");
 
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
 
-      print("🔹 Profile Status code: ${response.statusCode}");
-      print("🔸 Profile Response: ${response.body}");
+    print("🔹 Profile Status code: ${response.statusCode}");
+    print("🔸 Profile Response: ${response.body}");
 
-      if (response.headers['content-type']?.contains('application/json') == true) {
-        return jsonDecode(response.body);
-      } else {
-        return {'message': 'Respons server bukan JSON. Periksa route /profile.'};
+    if (response.headers['content-type']?.contains('application/json') == true) {
+      final data = jsonDecode(response.body);
+      // ambil langsung objek user-nya
+      if (data['success'] == true && data['data'] != null) {
+        return data['data'];
       }
-    } catch (e) {
-      print("❌ Error saat ambil profil: $e");
-      return {'message': 'Gagal terhubung ke server.'};
+      return {'message': data['message'] ?? 'Data profil tidak ditemukan'};
+    } else {
+      return {'message': 'Respons server bukan JSON. Periksa route /profile.'};
     }
+  } catch (e) {
+    print("❌ Error saat ambil profil: $e");
+    return {'message': 'Gagal terhubung ke server.'};
   }
+}
+
+
+
+  // 📝 UPDATE PROFIL USER
+static Future<Map<String, dynamic>> updateProfile({
+  required String name,
+  required String alamat,
+  required String noHp,
+  required String gender,
+  required String email,
+}) async {
+  final token = await getToken();
+  final url = Uri.parse("$baseUrl/profile/update");
+
+  try {
+    final response = await http.put(
+      url,
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: {
+        "name": name,
+        "alamat": alamat,
+        "no_hp": noHp,
+        "gender": gender,
+        "email": email,
+      },
+    );
+
+    print("🔹 Update Profile Status code: ${response.statusCode}");
+    print("🔸 Update Profile Response: ${response.body}");
+
+    if (response.headers['content-type']?.contains('application/json') == true) {
+      final data = jsonDecode(response.body);
+      return data;
+    } else {
+      return {
+        'success': false,
+        'message': 'Respons server bukan JSON. Periksa route /profile/update di Laravel.',
+      };
+    }
+  } catch (e) {
+    print("❌ Error saat update profil: $e");
+    return {
+      'success': false,
+      'message': 'Gagal terhubung ke server. Pastikan backend jalan & IP benar.',
+    };
+  }
+}
+
 
   // 📝 LOGOUT
   static Future<void> logout() async {
