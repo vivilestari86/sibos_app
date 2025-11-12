@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sibos_app/config.dart';
 
 // Screens
-import 'package:sibos_app/screens/chat_screen.dart';
 import 'package:sibos_app/screens/edit_profil_screen.dart';
 import 'package:sibos_app/screens/notification_screen.dart';
 import 'package:sibos_app/screens/profil_screen.dart';
@@ -93,7 +92,6 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/notifications': (context) => const NotificationScreen(),
         '/riwayat-pemesanan': (context) => const RiwayatPemesananScreen(),
-        '/chat': (context) => const ChatScreen(),
         '/profil': (context) => const ProfileScreen(),
         '/edit-profil': (context) => const EditProfileScreen(initialData: {}),
         '/teknisi-form': (context) => const TeknisiFormScreen(),
