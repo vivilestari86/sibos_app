@@ -37,7 +37,7 @@ dependencies:
   cached_network_image: ^3.2.3
   intl: ^0.19.0
   
-  midtrans_sdk: ^0.3.1
+  midtrans_sdk: ^1.1.0
   webview_flutter: ^4.4.2
   app_links: ^3.5.1
 

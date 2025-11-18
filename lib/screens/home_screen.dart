@@ -156,11 +156,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           final layanan = layanans[index];
                           return _serviceCard(
                             context: context,
-                            id: layanan['id'],
+                            id: int.tryParse(layanan['id'].toString()) ?? 0,
                             title: layanan['jenis_layanan'] ?? '-',
                             imagePath: layanan['gambar'] ?? 'assets/images/default.jpg',
                             description: layanan['deskripsi'] ?? '',
-                            harga: layanan['harga'] ?? 0,
+                            harga: int.tryParse(layanan['harga'].toString()) ?? 0
                           );
                         },
                       ),
