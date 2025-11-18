@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/date_symbol_data_local.dart';
@@ -20,9 +19,15 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-Future<void> buatPesananSetelahPembayaran(String? orderId, int layananId, DateTime jadwal, int totalHarga) async {
+Future<void> buatPesananSetelahPembayaran(
+  String? orderId,
+  int layananId,
+  DateTime jadwal,
+  int totalHarga,
+) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('token');
 
@@ -53,11 +58,9 @@ Future<void> buatPesananSetelahPembayaran(String? orderId, int layananId, DateTi
   }
 }
 
-
 void initUniLinks() async {
   final appLinks = AppLinks();
 
-  // listen for incoming links
   appLinks.uriLinkStream.listen((uri) {
     if (uri.toString() == 'myapp://riwayat-pemesanan') {
       navigatorKey.currentState?.pushReplacement(
@@ -66,11 +69,12 @@ void initUniLinks() async {
     }
   });
 }
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // wajib untuk async init
-  await initializeDateFormatting('id', null); // format tanggal Indonesia
 
-  initUniLinks(); // ✅ aktifkan listener deep link
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Wajib sebelum async
+  await initializeDateFormatting('id', null); // Format tanggal Indonesia
+  await AppConfig.loadToken(); // 🔥 Load token dari SharedPreferences
+  initUniLinks(); // Aktifkan listener deep link
 
   runApp(const MyApp());
 }
@@ -81,7 +85,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: navigatorKey, // ✅ penting untuk navigasi lewat deep link
+      navigatorKey: navigatorKey, // 🔗 Untuk deep link
       debugShowCheckedModeBanner: false,
       title: 'SIBOS',
       theme: ThemeData(primarySwatch: Colors.deepPurple),

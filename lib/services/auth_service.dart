@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -160,41 +161,77 @@ class AuthService {
     return prefs.getString('token');
   }
 
-  // 🧰 REGISTER TEKNISI
+
+//Teknisi
   static Future<Map<String, dynamic>> registerAsTechnician({
-  required String nama,
-  required String alamat,
-  required String telepon,
-  required String keahlian,
-  required String pengalaman,
-  String? sertifikat,
-}) async {
-  final token = await getToken();
-  final url = Uri.parse("$baseUrl/teknisi/register");
+    required String keahlian,
+    required String pengalaman,
+    required File sertifikatFile,
+  }) async {
+    try {
+      final token = await getToken();
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
-      body: {
-        "alamat": alamat,
-        "telepon": telepon,
-        "keahlian": keahlian,
-        "pengalaman": pengalaman,
-        if (sertifikat != null) "sertifikat": sertifikat,
-      },
-    );
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/teknisi/register'),
+      );
 
-    print("🔹 Teknisi Register Status code: ${response.statusCode}");
-    print("🔸 Teknisi Register Response: ${response.body}");
+      request.headers['Accept'] = 'application/json';
+      request.headers['Authorization'] = 'Bearer $token';
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return {"success": true, "message": "Pendaftaran teknisi berhasil", "data": jsonDecode(response.body)};
-    } else {
-      return {"success": false, "message": jsonDecode(response.body)['message'] ?? "Gagal daftar teknisi"};
+      // ✅ Field disamakan dengan ApiTeknisiController
+      request.fields['keahlian'] = keahlian;
+      request.fields['pengalaman'] = pengalaman;
+      request.files.add(await http.MultipartFile.fromPath('sertifikat', sertifikatFile.path));
+
+      var response = await request.send();
+      var body = await response.stream.bytesToString();
+
+      print('📤 Status Code: ${response.statusCode}');
+      print('📩 Response Body: $body');
+
+      return jsonDecode(body);
+    } catch (e) {
+      print('❌ Error Register Teknisi: $e');
+      return {'success': false, 'message': e.toString()};
     }
-  } catch (e) {
-    return {"success": false, "message": "Terjadi kesalahan: $e"};
   }
+
+static Future<Map<String, dynamic>> checkTeknisiStatus() async {
+  final token = await getToken(); // ambil token dari SharedPreferences
+  final response = await http.get(
+    Uri.parse('$baseUrl/teknisi/status'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+
+  return jsonDecode(response.body);
 }
+  
+static Future<Map<String, dynamic>> updateProfileTeknisi(
+  Map<String, dynamic> data, {
+  File? file,
+}) async {
+  final url = Uri.parse("$baseUrl/teknisi/update-profile");
+
+  var request = http.MultipartRequest("POST", url);
+
+  data.forEach((key, value) {
+    request.fields[key] = value.toString();
+  });
+
+  if (file != null) {
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        "sertifikat",        
+        file.path,
+      ),
+    );
+  }
+
+  var streamedResponse = await request.send();
+  var response = await http.Response.fromStream(streamedResponse);
+
+  return jsonDecode(response.body);
+}
+
 }

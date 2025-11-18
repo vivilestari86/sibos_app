@@ -154,13 +154,34 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: layanans.length,
                         itemBuilder: (context, index) {
                           final layanan = layanans[index];
+                          final int parsedId = int.tryParse(layanan['id'].toString()) ?? 0;
+                          final int parsedHarga = int.tryParse(
+          (layanan['harga'] ??
+          layanan['biaya'] ??
+          layanan['harga_layanan'] ??
+          layanan['harga_service'] ??
+          0)
+          .toString()
+        ) ?? 0;
+                          String imageUrl = layanan['gambar'] ?? '';
+                          if (!imageUrl.startsWith('http')) {
+                            imageUrl = "http://10.0.2.2:8000/$imageUrl";
+                          }
                           return _serviceCard(
                             context: context,
+<<<<<<< Updated upstream
                             id: int.tryParse(layanan['id'].toString()) ?? 0,
+=======
+                            id: parsedId,
+>>>>>>> Stashed changes
                             title: layanan['jenis_layanan'] ?? '-',
-                            imagePath: layanan['gambar'] ?? 'assets/images/default.jpg',
+                            imagePath: imageUrl,
                             description: layanan['deskripsi'] ?? '',
+<<<<<<< Updated upstream
                             harga: int.tryParse(layanan['harga'].toString()) ?? 0
+=======
+                            harga: parsedHarga,
+>>>>>>> Stashed changes
                           );
                         },
                       ),
