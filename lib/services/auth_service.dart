@@ -78,10 +78,11 @@ class AuthService {
       if (response.headers['content-type']?.contains('application/json') == true) {
         final data = jsonDecode(response.body);
 
-        if (response.statusCode == 200 && data['token'] != null) {
+        if (response.statusCode == 200 && data['data'] != null && data['data']['token'] != null) {
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', data['token']);
+          await prefs.setString('token', data['data']['token']);
         }
+
 
         return data;
       } else {
