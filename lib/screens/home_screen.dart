@@ -21,10 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   late final List<Widget> _pages = [
-    _berandaTab(), // Tab 0: Beranda
-    const SearchScreen(), // Tab 1: Pencarian
-    const TeknisiFormScreen(), // Tab 2: Form Teknisi
-    const ProfileScreen(), // Tab 4: Profil
+    _berandaTab(),
+    const SearchScreen(),
+    const TeknisiFormScreen(),
+    const ProfileScreen(),
   ];
 
   @override
@@ -37,9 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
@@ -51,9 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ============================
+  // =======================
   // Tab Beranda
-  // ============================
+  // =======================
   Widget _berandaTab() {
     return FutureBuilder<List<dynamic>>(
       future: LayananService.fetchLayanan(),
@@ -153,35 +151,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         itemCount: layanans.length,
                         itemBuilder: (context, index) {
-                          final layanan = layanans[index];
-                          final int parsedId = int.tryParse(layanan['id'].toString()) ?? 0;
-                          final int parsedHarga = int.tryParse(
-          (layanan['harga'] ??
-          layanan['biaya'] ??
-          layanan['harga_layanan'] ??
-          layanan['harga_service'] ??
-          0)
-          .toString()
-        ) ?? 0;
-                          String imageUrl = layanan['gambar'] ?? '';
-                          if (!imageUrl.startsWith('http')) {
-                            imageUrl = "http://10.0.2.2:8000/$imageUrl";
-                          }
+                          final layanan = layanans.elementAt(index);
                           return _serviceCard(
                             context: context,
-<<<<<<< Updated upstream
-                            id: int.tryParse(layanan['id'].toString()) ?? 0,
-=======
-                            id: parsedId,
->>>>>>> Stashed changes
+                            id: layanan['id'],
                             title: layanan['jenis_layanan'] ?? '-',
-                            imagePath: imageUrl,
+                            imagePath: layanan['gambar'] ?? 'assets/images/default.jpg',
                             description: layanan['deskripsi'] ?? '',
-<<<<<<< Updated upstream
-                            harga: int.tryParse(layanan['harga'].toString()) ?? 0
-=======
-                            harga: parsedHarga,
->>>>>>> Stashed changes
+                            harga: layanan['harga'] ?? 0,
                           );
                         },
                       ),
@@ -193,9 +170,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ============================
+  // =======================
   // Widget Card Layanan
-  // ============================
+  // =======================
   Widget _serviceCard({
     required BuildContext context,
     required int id,
@@ -204,25 +181,19 @@ class _HomeScreenState extends State<HomeScreen> {
     required String description,
     required int harga,
   }) {
-    Widget imageWidget;
-
-    if (imagePath.startsWith('http')) {
-      imageWidget = ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        child: CachedNetworkImage(
-          imageUrl: imagePath,
-          fit: BoxFit.cover,
-          placeholder: (c, s) => const Center(child: CircularProgressIndicator()),
-          errorWidget: (c, s, e) =>
-              Image.asset('assets/images/default.jpg', fit: BoxFit.cover),
-        ),
-      );
-    } else {
-      imageWidget = ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-        child: Image.asset(imagePath, fit: BoxFit.cover),
-      );
-    }
+    //Hasil Refactoring
+    final imageWidget = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: imagePath.startsWith('http')
+          ? CachedNetworkImage(
+              imageUrl: imagePath,
+              fit: BoxFit.cover,
+              placeholder: (c, s) => const Center(child: CircularProgressIndicator()),
+              errorWidget: (c, s, e) =>
+                  Image.asset('assets/images/default.jpg', fit: BoxFit.cover),
+            )
+          : Image.asset(imagePath, fit: BoxFit.cover),
+    );
 
     return GestureDetector(
       onTap: () {
@@ -230,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => ServiceDetailScreen(
-              serviceId: id, // ✅ kirim ID layanan
+              serviceId: id,
               title: title,
               imagePath: imagePath,
               description: description,

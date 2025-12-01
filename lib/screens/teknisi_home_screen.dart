@@ -32,7 +32,6 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
   // Fungsi untuk WhatsApp
   void _launchWhatsApp() {
     // TODO: Implement WhatsApp API
-    // Contoh: launch('https://wa.me/6281234567890?text=Halo,%20saya%20membutuhkan%20bantuan');
     print('WhatsApp button pressed');
   }
 
@@ -47,7 +46,8 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 2,
+        shadowColor: Colors.black12,
         title: const Text(
           "Dashboard Teknisi",
           style: TextStyle(
@@ -59,21 +59,34 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
         centerTitle: true,
         actions: [
           // Tombol WhatsApp
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(8),
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.chat, color: Colors.white, size: 20),
               ),
-              child: const Icon(Icons.chat, color: Colors.white, size: 20),
+              onPressed: _launchWhatsApp,
             ),
-            onPressed: _launchWhatsApp,
           ),
           // Tombol Logout
-          IconButton(
-            icon: const Icon(Icons.logout, color: Color(0xFFEF4444), size: 22),
-            onPressed: _logout,
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            child: IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.logout, color: Color(0xFFDC2626), size: 20),
+              ),
+              onPressed: _logout,
+            ),
           ),
         ],
       ),
@@ -87,13 +100,17 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
       child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
@@ -101,96 +118,104 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
           unselectedItemColor: const Color(0xFF94A3B8),
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 12,
+            fontSize: 11,
           ),
           unselectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w500,
-            fontSize: 12,
+            fontSize: 11,
           ),
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           items: [
             BottomNavigationBarItem(
               icon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
+                margin: const EdgeInsets.only(bottom: 4),
                 child: Icon(
                   Icons.home_outlined,
-                  size: 24,
+                  size: 22,
                   color: _selectedIndex == 0 
                       ? const Color(0xFF1A1AFF) 
                       : const Color(0xFF94A3B8),
                 ),
               ),
               activeIcon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
+                margin: const EdgeInsets.only(bottom: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A1AFF).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.home_filled, color: Color(0xFF1A1AFF), size: 24),
+                child: const Icon(Icons.home_filled, color: Color(0xFF1A1AFF), size: 22),
               ),
               label: 'Beranda',
             ),
             BottomNavigationBarItem(
               icon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
+                margin: const EdgeInsets.only(bottom: 4),
                 child: Icon(
                   Icons.work_outline,
-                  size: 24,
+                  size: 22,
                   color: _selectedIndex == 1 
                       ? const Color(0xFF1A1AFF) 
                       : const Color(0xFF94A3B8),
                 ),
               ),
               activeIcon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
+                margin: const EdgeInsets.only(bottom: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A1AFF).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.work, color: Color(0xFF1A1AFF), size: 24),
+                child: const Icon(Icons.work, color: Color(0xFF1A1AFF), size: 22),
               ),
               label: 'Pekerjaan',
             ),
             BottomNavigationBarItem(
               icon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
+                margin: const EdgeInsets.only(bottom: 4),
                 child: Icon(
                   Icons.attach_money_outlined,
-                  size: 24,
+                  size: 22,
                   color: _selectedIndex == 2 
                       ? const Color(0xFF1A1AFF) 
                       : const Color(0xFF94A3B8),
                 ),
               ),
               activeIcon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
+                margin: const EdgeInsets.only(bottom: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A1AFF).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.attach_money, color: Color(0xFF1A1AFF), size: 24),
+                child: const Icon(Icons.attach_money, color: Color(0xFF1A1AFF), size: 22),
               ),
               label: 'Pendapatan',
             ),
             BottomNavigationBarItem(
               icon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
+                margin: const EdgeInsets.only(bottom: 4),
                 child: Icon(
                   Icons.person_outline,
-                  size: 24,
+                  size: 22,
                   color: _selectedIndex == 3 
                       ? const Color(0xFF1A1AFF) 
                       : const Color(0xFF94A3B8),
                 ),
               ),
               activeIcon: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
+                margin: const EdgeInsets.only(bottom: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A1AFF).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.person, color: Color(0xFF1A1AFF), size: 24),
+                child: const Icon(Icons.person, color: Color(0xFF1A1AFF), size: 22),
               ),
               label: 'Profil',
             ),
@@ -219,7 +244,7 @@ class PekerjaanTab extends StatelessWidget {
               color: Color(0xFF1E293B),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           const Text(
             "Kelola semua pekerjaan Anda di sini",
             style: TextStyle(
@@ -234,7 +259,7 @@ class PekerjaanTab extends StatelessWidget {
             "Menunggu konfirmasi",
             const PekerjaanBaruScreen(),
             context,
-            Colors.green,
+            const Color(0xFF10B981),
           ),
           _buildPekerjaanCard(
             "2",
@@ -242,7 +267,7 @@ class PekerjaanTab extends StatelessWidget {
             "Dalam proses pengerjaan",
             const SedangDikerjakanScreen(),
             context,
-            Colors.orange,
+            const Color(0xFFF59E0B),
           ),
           _buildPekerjaanCard(
             "4",
@@ -250,7 +275,7 @@ class PekerjaanTab extends StatelessWidget {
             "Telah diselesaikan",
             const PekerjaanSelesaiScreen(),
             context,
-            Colors.blue,
+            const Color(0xFF3B82F6),
           ),
         ],
       ),
@@ -270,12 +295,12 @@ class PekerjaanTab extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
@@ -283,8 +308,8 @@ class PekerjaanTab extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               shape: BoxShape.circle,
@@ -293,7 +318,7 @@ class PekerjaanTab extends StatelessWidget {
               child: Text(
                 count,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),
@@ -318,27 +343,29 @@ class PekerjaanTab extends StatelessWidget {
                   subtitle,
                   style: const TextStyle(
                     color: Color(0xFF64748B),
-                    fontSize: 12,
+                    fontSize: 13,
                   ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage));
-            },
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1AFF).withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1AFF).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => targetPage));
+              },
+              icon: const Icon(
                 Icons.arrow_forward_ios,
                 color: Color(0xFF1A1AFF),
                 size: 16,
               ),
+              padding: EdgeInsets.zero,
             ),
           ),
         ],
@@ -347,7 +374,6 @@ class PekerjaanTab extends StatelessWidget {
   }
 }
 
-// Tambahkan BerandaTeknisiScreen jika belum ada
 class BerandaTeknisiScreen extends StatelessWidget {
   const BerandaTeknisiScreen({super.key});
 
@@ -368,7 +394,14 @@ class BerandaTeknisiScreen extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1A1AFF).withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,13 +419,13 @@ class BerandaTeknisiScreen extends StatelessWidget {
                   "Laela Fazah Fitriani!",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -409,14 +442,14 @@ class BerandaTeknisiScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // Quick Stats
           const Text(
             "Statistik Hari Ini",
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: Color(0xFF1E293B),
             ),
           ),
@@ -424,11 +457,11 @@ class BerandaTeknisiScreen extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _buildStatCard("3", "Pekerjaan Baru", Colors.green),
+                child: _buildStatCard("3", "Pekerjaan Baru", const Color(0xFF10B981)),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildStatCard("2", "Sedang Dikerjakan", Colors.orange),
+                child: _buildStatCard("2", "Sedang Dikerjakan", const Color(0xFFF59E0B)),
               ),
             ],
           ),
@@ -436,22 +469,22 @@ class BerandaTeknisiScreen extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _buildStatCard("4", "Selesai", Colors.blue),
+                child: _buildStatCard("4", "Selesai", const Color(0xFF3B82F6)),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildStatCard("Rp 1.3jt", "Pendapatan", Colors.purple),
+                child: _buildStatCard("Rp 1.3jt", "Pendapatan", const Color(0xFF8B5CF6)),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // Quick Actions
           const Text(
             "Aksi Cepat",
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: Color(0xFF1E293B),
             ),
           ),
@@ -463,7 +496,7 @@ class BerandaTeknisiScreen extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.5,
+              childAspectRatio: 1.4,
             ),
             children: [
               _buildQuickAction(Icons.work_outline, "Pekerjaan Baru", const PekerjaanBaruScreen(), context),
@@ -479,16 +512,16 @@ class BerandaTeknisiScreen extends StatelessWidget {
 
   Widget _buildStatCard(String value, String label, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withOpacity(0.08),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -508,7 +541,8 @@ class BerandaTeknisiScreen extends StatelessWidget {
             label,
             style: const TextStyle(
               color: Color(0xFF64748B),
-              fontSize: 12,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -524,13 +558,13 @@ class BerandaTeknisiScreen extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.grey.withOpacity(0.1)),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.05),
+              color: Colors.grey.withOpacity(0.08),
               blurRadius: 8,
-              offset: const Offset(0, 2),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -538,19 +572,19 @@ class BerandaTeknisiScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1AFF).withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: const Color(0xFF1A1AFF), size: 24),
+              child: Icon(icon, color: const Color(0xFF1A1AFF), size: 26),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               label,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF1E293B),
               ),

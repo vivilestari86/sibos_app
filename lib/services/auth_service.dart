@@ -5,10 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sibos_app/config.dart';
 
 class AuthService {
-  // 🔸 Base URL backend Laravel
   static const String baseUrl = AppConfig.baseUrl;
 
-  // 📝 REGISTER CUSTOMER
+  // ===============================
+  // REGISTER CUSTOMER
+  // ===============================
   static Future<Map<String, dynamic>> register({
     required String name,
     required String alamat,
@@ -35,21 +36,22 @@ class AuthService {
         },
       );
 
-      print("🔹 Register Status code: ${response.statusCode}");
-      print("🔸 Register Response: ${response.body}");
+      print("🔹 Register Status: ${response.statusCode}");
+      print("🔸 Body: ${response.body}");
 
       if (response.headers['content-type']?.contains('application/json') == true) {
         return jsonDecode(response.body);
-      } else {
-        return {'message': 'Respons server bukan JSON. Cek route Laravel atau URL.'};
       }
+      return {'message': 'Respons server bukan JSON.'};
     } catch (e) {
-      print("❌ Error saat register: $e");
-      return {'message': 'Gagal terhubung ke server. Pastikan backend jalan & IP benar.'};
+      print("❌ Error Register: $e");
+      return {'message': 'Gagal terhubung ke server.'};
     }
   }
 
-  // 📝 LOGIN
+  // ===============================
+  // LOGIN CUSTOMER/TEKNISI
+  // ===============================
   static Future<Map<String, dynamic>> login({
     required String username,
     required String password,
@@ -60,29 +62,39 @@ class AuthService {
       final response = await http.post(
         url,
         headers: {'Accept': 'application/json'},
-        body: {"username": username, "password": password},
+        body: {
+          "username": username,
+          "password": password,
+        },
       );
 
-      print("🔹 Login Status code: ${response.statusCode}");
-      print("🔸 Login Response: ${response.body}");
+      print("🔹 Login Status: ${response.statusCode}");
+      print("🔸 Body: ${response.body}");
 
       if (response.headers['content-type']?.contains('application/json') == true) {
         final data = jsonDecode(response.body);
-        if (response.statusCode == 200 && data['token'] != null) {
+
+        // Token format backend kamu: data['data']['token']
+        if (response.statusCode == 200 &&
+            data['data'] != null &&
+            data['data']['token'] != null) 
+        {
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', data['token']);
+          await prefs.setString('token', data['data']['token']);
         }
+
         return data;
-      } else {
-        return {'message': 'Respons server bukan JSON. Periksa URL API.'};
       }
+      return {'message': 'Respons server bukan JSON.'};
     } catch (e) {
-      print("❌ Error saat login: $e");
+      print("❌ Error Login: $e");
       return {'message': 'Gagal terhubung ke server.'};
     }
   }
 
-  // 📝 AMBIL PROFILE USER
+  // ===============================
+  // GET PROFILE
+  // ===============================
   static Future<Map<String, dynamic>> getProfile() async {
     final token = await getToken();
     final url = Uri.parse("$baseUrl/profile");
@@ -90,28 +102,33 @@ class AuthService {
     try {
       final response = await http.get(
         url,
-        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
       );
 
-      print("🔹 Profile Status code: ${response.statusCode}");
-      print("🔸 Profile Response: ${response.body}");
+      print("🔹 Profile Status: ${response.statusCode}");
+      print("🔸 Body: ${response.body}");
 
       if (response.headers['content-type']?.contains('application/json') == true) {
         final data = jsonDecode(response.body);
+
         if (data['success'] == true && data['data'] != null) {
           return data['data'];
         }
-        return {'message': data['message'] ?? 'Data profil tidak ditemukan'};
-      } else {
-        return {'message': 'Respons server bukan JSON. Periksa route /profile.'};
+        return {'message': data['message'] ?? 'Profil tidak ditemukan'};
       }
+
+      return {'message': 'Respons server bukan JSON.'};
     } catch (e) {
-      print("❌ Error saat ambil profil: $e");
       return {'message': 'Gagal terhubung ke server.'};
     }
   }
 
-  // 📝 UPDATE PROFILE USER
+  // ===============================
+  // UPDATE PROFILE
+  // ===============================
   static Future<Map<String, dynamic>> updateProfile({
     required String name,
     required String alamat,
@@ -125,7 +142,10 @@ class AuthService {
     try {
       final response = await http.put(
         url,
-        headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
         body: {
           "name": name,
           "alamat": alamat,
@@ -135,103 +155,154 @@ class AuthService {
         },
       );
 
-      print("🔹 Update Profile Status code: ${response.statusCode}");
-      print("🔸 Update Profile Response: ${response.body}");
+      print("🔹 Update Status: ${response.statusCode}");
+      print("🔸 Body: ${response.body}");
 
       if (response.headers['content-type']?.contains('application/json') == true) {
         return jsonDecode(response.body);
-      } else {
-        return {'success': false, 'message': 'Respons server bukan JSON. Periksa route /profile/update.'};
       }
+      return {'message': 'Respons bukan JSON'};
     } catch (e) {
-      print("❌ Error saat update profil: $e");
-      return {'success': false, 'message': 'Gagal terhubung ke server.'};
+      return {'message': 'Gagal menghubungi server'};
     }
   }
 
-  // 📝 LOGOUT
+  // ===============================
+  // LOGOUT
+  // ===============================
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
   }
 
-  // 📝 AMBIL TOKEN TERSIMPAN
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
+  // ===============================
+  // REGISTER TEKNISI
+  // ===============================
+static Future<Map<String, dynamic>> registerAsTechnician({
+  required String keahlian,
+  required String pengalaman,
+  required File sertifikatFile,
+}) async {
+  try {
+    final token = await getToken();
+    var request = http.MultipartRequest("POST", Uri.parse("$baseUrl/teknisi/register"));
+    request.headers['Authorization'] = "Bearer $token";
+    request.fields['keahlian'] = keahlian;
+    request.fields['pengalaman'] = pengalaman;
+    request.files.add(await http.MultipartFile.fromPath("sertifikat", sertifikatFile.path));
 
-//Teknisi
-  static Future<Map<String, dynamic>> registerAsTechnician({
-    required String keahlian,
-    required String pengalaman,
-    required File sertifikatFile,
-  }) async {
-    try {
-      final token = await getToken();
-
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/teknisi/register'),
-      );
-
-      request.headers['Accept'] = 'application/json';
-      request.headers['Authorization'] = 'Bearer $token';
-
-      // ✅ Field disamakan dengan ApiTeknisiController
-      request.fields['keahlian'] = keahlian;
-      request.fields['pengalaman'] = pengalaman;
-      request.files.add(await http.MultipartFile.fromPath('sertifikat', sertifikatFile.path));
-
-      var response = await request.send();
-      var body = await response.stream.bytesToString();
-
-      print('📤 Status Code: ${response.statusCode}');
-      print('📩 Response Body: $body');
-
-      return jsonDecode(body);
-    } catch (e) {
-      print('❌ Error Register Teknisi: $e');
-      return {'success': false, 'message': e.toString()};
-    }
+    var response = await request.send();
+    var body = await response.stream.bytesToString();
+    return jsonDecode(body);
+  } catch (e) {
+    return {'status': 'error', 'message': e.toString()};
   }
+}
 
 static Future<Map<String, dynamic>> checkTeknisiStatus() async {
-  final token = await getToken(); // ambil token dari SharedPreferences
-  final response = await http.get(
-    Uri.parse('$baseUrl/teknisi/status'),
-    headers: {'Authorization': 'Bearer $token'},
-  );
+  final token = await getToken();
 
-  return jsonDecode(response.body);
-}
-  
-static Future<Map<String, dynamic>> updateProfileTeknisi(
-  Map<String, dynamic> data, {
-  File? file,
-}) async {
-  final url = Uri.parse("$baseUrl/teknisi/update-profile");
-
-  var request = http.MultipartRequest("POST", url);
-
-  data.forEach((key, value) {
-    request.fields[key] = value.toString();
-  });
-
-  if (file != null) {
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        "sertifikat",        
-        file.path,
-      ),
-    );
+  if (token == null || token.isEmpty) {
+    return {'status': 'none'};
   }
 
-  var streamedResponse = await request.send();
-  var response = await http.Response.fromStream(streamedResponse);
+  try {
+    final response = await http.get(
+      Uri.parse("$baseUrl/teknisi/status"),
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token'
+      },
+    );
 
-  return jsonDecode(response.body);
+    print("🔹 Status Teknisi Code: ${response.statusCode}");
+    print("🔸 Body: ${response.body}");
+    print("🔸 Content-Type: ${response.headers['content-type']}");
+
+    if (response.statusCode != 200 ||
+        !response.headers['content-type']!.contains("application/json")) {
+      return {'status': 'none'};
+    }
+
+    final result = jsonDecode(response.body);
+
+    // Kalau backend mengembalikan status "registered" dan data teknisi
+    if (result['status'] == 'registered' && result['data'] != null) {
+      return {
+        'status': 'registered',
+        'data': result['data'], // ini penting supaya Flutter dapat data
+      };
+    }
+
+    return {'status': 'none'};
+  } catch (e) {
+    print("❌ Error Check Status: $e");
+    return {'status': 'none'};
+  }
 }
 
+
+  static Future<Map<String, dynamic>> getProfileTeknisi() async {
+  final token = await getToken();
+
+  try {
+    final response = await http.get(
+      Uri.parse("$baseUrl/teknisi/profile"),
+      headers: {
+        "Accept": "application/json",
+        "Authorization": "Bearer $token"
+      },
+    );
+
+    print("🔹 GetProfileTeknisi Status: ${response.statusCode}");
+    print("🔸 Body: ${response.body}");
+
+    if (response.statusCode == 200 &&
+        response.headers['content-type']!.contains("application/json")) 
+    {
+      final data = jsonDecode(response.body);
+
+      // SESUAI DENGAN API LARAVEL
+      if (data["success"] == true && data["data"] != null) {
+        return data["data"];
+      }
+
+      return {"message": data["message"] ?? "Data teknisi tidak ditemukan"};
+    }
+
+    return {"message": "Gagal memuat profil teknisi"};
+  } catch (e) {
+    return {"message": "Gagal terhubung ke server"};
+  }
+}
+
+
+  static Future<Map<String, dynamic>> updateProfileTeknisi(
+    Map<String, dynamic> data, {
+    File? file,
+  }) async {
+    final url = Uri.parse("$baseUrl/teknisi/update-profile");
+
+    var request = http.MultipartRequest("POST", url);
+
+    data.forEach((key, value) {
+      request.fields[key] = value.toString();
+    });
+
+    if (file != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath("sertifikat", file.path),
+      );
+    }
+
+    var res = await request.send();
+    var finalRes = await http.Response.fromStream(res);
+
+    return jsonDecode(finalRes.body);
+  }
 }
