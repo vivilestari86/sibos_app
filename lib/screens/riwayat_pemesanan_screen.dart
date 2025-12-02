@@ -106,7 +106,8 @@ class _RiwayatPemesananScreenState extends State<RiwayatPemesananScreen> {
                     itemBuilder: (context, index) {
                       final order = _orders[index];
                       final layanan = order['layanan']?['jenis_layanan'] ?? 'Tidak ada';
-                      final teknisi = order['teknisi']?['nama'] ?? 'Belum ditugaskan';
+                      final teknisi = order['teknisi']?['user']?['name'] ?? 'Belum ditugaskan';
+
                       final total = double.tryParse(order['total_harga'].toString()) ?? 0.0;
 
                       return Padding(

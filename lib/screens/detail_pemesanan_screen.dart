@@ -52,48 +52,35 @@ class _DetailPemesananScreenState extends State<DetailPemesananScreen> {
     ]);
     setState(() => _isLoading = false);
   }
-
-  Future<void> _fetchCustomerProfile() async {
+  // Sesudah di Refactor
+  // Membuat satu fungsi helper untuk GET API
+  Future<Map<String, dynamic>?> _apiGet(String url, {Map<String, String>? headers}) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null) return;
-
-      final response = await http.get(
-        Uri.parse('$baseUrl/profile'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
+      final response = await http.get(Uri.parse(url), headers: headers);
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          _customerData = data['data'];
-        }
+        return jsonDecode(response.body);
       }
     } catch (e) {
-      debugPrint("❌ Error fetch profile: $e");
+      debugPrint("❌ API GET Error: $e");
     }
+    return null;
+  }
+  // Pemanggilan lebih bersih
+    Future<void> _fetchCustomerProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final data = await _apiGet('$baseUrl/profile', headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    });
+
+    if (data?['success'] == true) _customerData = data!['data'];
   }
 
   Future<void> _fetchServiceDetail(int id) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/layanans/$id'),
-        headers: {'Accept': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          _serviceData = data['data'];
-        }
-      }
-    } catch (e) {
-      debugPrint("❌ Error fetch service detail: $e");
-    }
+    final data = await _apiGet('$baseUrl/layanans/$id');
+    if (data?['success'] == true) _serviceData = data!['data'];
   }
 
   Future<void> _pickDate() async {

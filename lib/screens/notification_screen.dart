@@ -40,7 +40,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
           'Authorization': 'Bearer $token',
         },
       );
-
+      
+      print("🔵 RESPONSE STATUS : ${response.statusCode}");
+      print("🔵 RESPONSE BODY : ${response.body}");
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -97,8 +99,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       final order = _orders[index];
                       final layanan =
                           order['layanan']?['jenis_layanan'] ?? 'Tidak ada';
-                      final teknisi =
-                          order['teknisi']?['nama'] ?? 'Belum ditugaskan';
+                      final teknisi = order['teknisi']?['user']?['name'] ?? 'Belum ditugaskan';
+
                       final total =
                           double.tryParse(order['total_harga'].toString()) ?? 0.0;
                       final status = order['status'] ?? '-';
