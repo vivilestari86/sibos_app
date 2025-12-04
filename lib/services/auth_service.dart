@@ -76,12 +76,23 @@ class AuthService {
 
         // Token format backend kamu: data['data']['token']
         if (response.statusCode == 200 &&
-            data['data'] != null &&
-            data['data']['token'] != null) 
-        {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', data['data']['token']);
-        }
+    data['data'] != null &&
+    data['data']['token'] != null) 
+{
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('token', data['data']['token']);
+
+  // SIMPAN USER ID
+  if (data['data']['user'] != null) {
+    await prefs.setInt('user_id', data['data']['user']['id']);
+  }
+
+  // SIMPAN TEKNISI ID (PALING PENTING)
+  if (data['data']['teknisi'] != null) {
+    await prefs.setInt('teknisi_id', data['data']['teknisi']['id']);
+  }
+}
+
 
         return data;
       }
@@ -233,11 +244,19 @@ static Future<Map<String, dynamic>> checkTeknisiStatus() async {
 
     // Kalau backend mengembalikan status "registered" dan data teknisi
     if (result['status'] == 'registered' && result['data'] != null) {
-      return {
-        'status': 'registered',
-        'data': result['data'], // ini penting supaya Flutter dapat data
-      };
-    }
+  final teknisiId = result['data']['id'];
+
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt('teknisi_id', teknisiId);
+
+  print("✔️ TEKNISI ID DISIMPAN: $teknisiId");
+
+  return {
+    'status': 'registered',
+    'data': result['data'],
+  };
+}
+
 
     return {'status': 'none'};
   } catch (e) {
