@@ -254,12 +254,39 @@ class PekerjaanBaruScreen extends StatelessWidget {
                     color: const Color(0xFF1A1AFF),
                   ),
                   child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SedangDikerjakanScreen()),
-                      );
-                    },
+                    onPressed: () async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token");
+
+  final response = await http.post(
+    Uri.parse("${AppConfig.baseUrl}/pekerjaan/terima"),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+    },
+    body: {
+      "pemesanan_id": pemesananId.toString(),
+    },
+  );
+
+  if (response.statusCode == 200) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Pekerjaan berhasil diterima!")),
+    );
+
+    // pindah ke halaman sedang dikerjakan
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const SedangDikerjakanScreen()),
+    );
+  } else {
+    print("ERROR: ${response.body}");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Gagal menerima pekerjaan")),
+    );
+  }
+},
+
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),

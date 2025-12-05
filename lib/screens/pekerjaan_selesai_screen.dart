@@ -1,8 +1,72 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sibos_app/config.dart';
 
 class PekerjaanSelesaiScreen extends StatelessWidget {
   const PekerjaanSelesaiScreen({super.key});
 
+  // =============================== //
+  //     FETCH DATA DARI SERVER     //
+  // =============================== //
+  Future<List<dynamic>> fetchPekerjaanSelesai() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+
+    final response = await http.get(
+      Uri.parse("${AppConfig.baseUrl}/pekerjaan/riwayat"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+
+    return jsonDecode(response.body);
+  }
+
+  // =============================== //
+  //           HEADER CARD          //
+  // =============================== //
+  Widget _headerSelesai(int count) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10B981).withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.1)),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.verified, color: Color(0xFF10B981), size: 32),
+          const SizedBox(height: 12),
+          Text(
+            "$count Pekerjaan Selesai",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF10B981),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Riwayat pekerjaan yang telah diselesaikan",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =============================== //
+  //              UI                //
+  // =============================== //
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,84 +88,45 @@ class PekerjaanSelesaiScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Header Info
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.1)),
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.verified, color: Color(0xFF10B981), size: 32),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "4 Pekerjaan Selesai",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF10B981),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Riwayat pekerjaan yang telah diselesaikan",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
 
-            // List Pekerjaan
-            _buildJobCard(
-              "Service AC Split",
-              "Budi Santoso",
-              "Jl. Merdeka No. 123, Jakarta",
-              "0812-3456-7890",
-              "16-09-2025",
-              "Rp 220.000",
-            ),
-            _buildJobCard(
-              "Service Kulkas 2 Pintu",
-              "Siti Aminah",
-              "Jl. Sudirman No. 456, Jakarta",
-              "0813-4567-8901",
-              "15-09-2025",
-              "Rp 135.000",
-            ),
-            _buildJobCard(
-              "Instalasi Listrik",
-              "Ahmad Rizki",
-              "Jl. Thamrin No. 789, Jakarta",
-              "0814-5678-9012",
-              "14-09-2025",
-              "Rp 180.000",
-            ),
-            _buildJobCard(
-              "Service TV LED",
-              "Maya Sari",
-              "Jl. Gatot Subroto No. 321, Jakarta",
-              "0815-6789-0123",
-              "13-09-2025",
-              "Rp 150.000",
-            ),
-          ],
-        ),
-      ),
+      body: FutureBuilder(
+        future: fetchPekerjaanSelesai(),
+builder: (context, snapshot) {
+  if (!snapshot.hasData) {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  final List jobs = snapshot.data!;
+
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      children: [
+        _headerSelesai(jobs.length),
+        const SizedBox(height: 24),
+
+        ...jobs.map<Widget>((job) {
+          return _buildJobCard(
+            job['layanan']['jenis_layanan'],
+            job['user']?['name'],
+            job['user']['alamat'],
+            job['user']['no_hp'],
+            job['jadwal_service'].substring(0, 10),
+            "Rp ${job['total_harga']}",
+          );
+        }).toList(),
+      ],
+    ),
+  );
+},
+)
+
     );
   }
 
+  // =============================== //
+  //          CARD ITEM JOB         //
+  // =============================== //
   Widget _buildJobCard(
     String service,
     String customerName,
@@ -125,10 +150,11 @@ class PekerjaanSelesaiScreen extends StatelessWidget {
           ),
         ],
       ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header dengan service dan status
+          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -159,17 +185,18 @@ class PekerjaanSelesaiScreen extends StatelessWidget {
               ),
             ],
           ),
+
           const SizedBox(height: 16),
 
-          // Info Customer
+          // Informasi Customer
           _buildInfoRow(Icons.person, "Customer", customerName),
           _buildInfoRow(Icons.location_on, "Alamat", address),
           _buildInfoRow(Icons.phone, "Telepon", phone),
           _buildInfoRow(Icons.calendar_today, "Tanggal", date),
-          
+
           const SizedBox(height: 16),
 
-          // Income Section
+          // Pendapatan
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -215,7 +242,7 @@ class PekerjaanSelesaiScreen extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Rating Section
+          // Rating
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -267,6 +294,9 @@ class PekerjaanSelesaiScreen extends StatelessWidget {
     );
   }
 
+  // =============================== //
+  //        ROW INFORMASI           //
+  // =============================== //
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
