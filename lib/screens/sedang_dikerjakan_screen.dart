@@ -181,61 +181,7 @@ body: FutureBuilder(
           
           const SizedBox(height: 20),
 
-          // Progress Section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFF),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.withOpacity(0.1)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Progress Pengerjaan",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: 0.6,
-                        backgroundColor: Colors.grey[300],
-                        color: const Color(0xFF1A1AFF),
-                        minHeight: 8,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      "60%",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1A1AFF),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Pengerjaan tahap penyelesaian",
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
           
-          const SizedBox(height: 20),
 
           // Action Button
           Container(

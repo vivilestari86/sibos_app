@@ -1,13 +1,22 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sibos_app/config.dart';
 import 'package:sibos_app/screens/pendapatan_teknisi_screen.dart';
 import 'package:sibos_app/screens/profile_teknisi_screen.dart';
 import 'package:sibos_app/screens/pekerjaan_baru_screen.dart';
 import 'package:sibos_app/screens/sedang_dikerjakan_screen.dart';
 import 'package:sibos_app/screens/pekerjaan_selesai_screen.dart';
 import 'package:sibos_app/screens/beranda_teknisi_screen.dart';
+import 'package:sibos_app/services/auth_service.dart';
 
 class TeknisiHomeScreen extends StatefulWidget {
   const TeknisiHomeScreen({super.key});
+
+  
 
   @override
   State<TeknisiHomeScreen> createState() => _TeknisiHomeScreenState();
@@ -226,8 +235,81 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
   }
 }
 
-class PekerjaanTab extends StatelessWidget {
+class PekerjaanTab extends StatefulWidget {
   const PekerjaanTab({super.key});
+
+  @override
+  _PekerjaanTabState createState() => _PekerjaanTabState();
+}
+
+class _PekerjaanTabState extends State<PekerjaanTab> {
+
+  // ==============================
+  // METHOD FETCH SUMMARY
+  // ==============================
+  Future<Map<String, dynamic>> fetchSummary() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+
+    // == GET pekerjaan baru ==
+    final baruRes = await http.get(
+      Uri.parse("${AppConfig.baseUrl}/pekerjaan-baru"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+    final baru = jsonDecode(baruRes.body);
+    final totalBaru = baru['data']?.length ?? 0;
+
+    // == GET sedang dikerjakan ==
+    final dikerjakanRes = await http.get(
+      Uri.parse("${AppConfig.baseUrl}/pekerjaan/dikerjakan"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+    final dikerjakan = jsonDecode(dikerjakanRes.body);
+    final totalDikerjakan = dikerjakan.length;
+
+    // == GET pekerjaan selesai ==
+    final selesaiRes = await http.get(
+      Uri.parse("${AppConfig.baseUrl}/pekerjaan/riwayat"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+    final selesaiDecoded = jsonDecode(selesaiRes.body);
+
+    List selesaiList;
+    if (selesaiDecoded is List) {
+      selesaiList = selesaiDecoded;
+    } else if (selesaiDecoded is Map && selesaiDecoded['data'] is List) {
+      selesaiList = selesaiDecoded['data'];
+    } else if (selesaiDecoded is Map && selesaiDecoded['selesai'] is List) {
+      selesaiList = selesaiDecoded['selesai'];
+    } else {
+      selesaiList = [];
+    }
+
+    final totalSelesai = selesaiList.length;
+
+    // == Hitung pendapatan ==
+    int totalPendapatan = 0;
+    for (var job in selesaiList) {
+      final harga = int.tryParse(job['total_harga'].toString().split(".")[0]) ?? 0;
+      totalPendapatan += harga;
+    }
+
+    return {
+      "baru": totalBaru,
+      "dikerjakan": totalDikerjakan,
+      "selesai": totalSelesai,
+      "pendapatan": totalPendapatan,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -253,34 +335,54 @@ class PekerjaanTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildPekerjaanCard(
-            "3",
-            "Pekerjaan Baru",
-            "Menunggu konfirmasi",
-            const PekerjaanBaruScreen(),
-            context,
-            const Color(0xFF10B981),
-          ),
-          _buildPekerjaanCard(
-            "2",
-            "Sedang Dikerjakan",
-            "Dalam proses pengerjaan",
-            const SedangDikerjakanScreen(),
-            context,
-            const Color(0xFFF59E0B),
-          ),
-          _buildPekerjaanCard(
-            "4",
-            "Selesai",
-            "Telah diselesaikan",
-            const PekerjaanSelesaiScreen(),
-            context,
-            const Color(0xFF3B82F6),
+
+          FutureBuilder<Map<String, dynamic>>(
+            future: fetchSummary(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final data = snapshot.data!;
+
+              return Column(
+                children: [
+                  _buildPekerjaanCard(
+                    data["baru"].toString(),
+                    "Pekerjaan Baru",
+                    "Menunggu konfirmasi",
+                    const PekerjaanBaruScreen(),
+                    context,
+                    const Color(0xFF10B981),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPekerjaanCard(
+                    data["dikerjakan"].toString(),
+                    "Sedang Dikerjakan",
+                    "Dalam proses pengerjaan",
+                    const SedangDikerjakanScreen(),
+                    context,
+                    const Color(0xFFF59E0B),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPekerjaanCard(
+                    data["selesai"].toString(),
+                    "Selesai",
+                    "Telah diselesaikan",
+                    const PekerjaanSelesaiScreen(),
+                    context,
+                    const Color(0xFF3B82F6),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
     );
   }
+}
+
 
   Widget _buildPekerjaanCard(
     String count,
@@ -372,10 +474,104 @@ class PekerjaanTab extends StatelessWidget {
       ),
     );
   }
+
+
+class BerandaTeknisiScreen extends StatefulWidget {
+  const BerandaTeknisiScreen({super.key});
+  
+  @override
+  State<BerandaTeknisiScreen> createState() => _BerandaTeknisiScreenState();
 }
 
-class BerandaTeknisiScreen extends StatelessWidget {
-  const BerandaTeknisiScreen({super.key});
+class _BerandaTeknisiScreenState extends State<BerandaTeknisiScreen> {
+  String namaTeknisi = "";
+
+  @override
+  void initState() {
+    super.initState();
+    loadProfile();
+  }
+// Ambil nama dari API profile customer
+  Future<void> loadProfile() async {
+    final data = await AuthService.getProfile();
+
+    if (mounted) {
+      setState(() {
+        namaTeknisi = data['name'] ?? "Teknisi";
+      });
+    }
+  }
+
+  
+  Future<Map<String, dynamic>> fetchSummary() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token");
+
+  // == GET pekerjaan baru ==
+  final baruRes = await http.get(
+    Uri.parse("${AppConfig.baseUrl}/pekerjaan-baru"),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+    },
+  );
+
+  final baru = jsonDecode(baruRes.body);
+  final totalBaru = baru['data']?.length ?? 0;
+
+  // == GET sedang dikerjakan ==
+  final dikerjakanRes = await http.get(
+    Uri.parse("${AppConfig.baseUrl}/pekerjaan/dikerjakan"),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+    },
+  );
+
+  final dikerjakan = jsonDecode(dikerjakanRes.body);
+  final totalDikerjakan = dikerjakan.length;
+
+  // == GET pekerjaan selesai ==
+  final selesaiRes = await http.get(
+    Uri.parse("${AppConfig.baseUrl}/pekerjaan/riwayat"),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Accept": "application/json",
+    },
+  );
+
+  final selesaiDecoded = jsonDecode(selesaiRes.body);
+
+  List selesaiList;
+  if (selesaiDecoded is List) {
+    selesaiList = selesaiDecoded;
+  } else if (selesaiDecoded is Map && selesaiDecoded['data'] is List) {
+    selesaiList = selesaiDecoded['data'];
+  } else if (selesaiDecoded is Map && selesaiDecoded['selesai'] is List) {
+    selesaiList = selesaiDecoded['selesai'];
+  } else {
+    selesaiList = [];
+  }
+
+  final totalSelesai = selesaiList.length;
+
+  // == Hitung pendapatan ==
+  int totalPendapatan = 0;
+  for (var job in selesaiList) {
+    final harga = int.tryParse(job['total_harga'].toString().split(".")[0]) ?? 0;
+    totalPendapatan += harga;
+  }
+
+  // == RETURN ==
+  return {
+    "baru": totalBaru,
+    "dikerjakan": totalDikerjakan,
+    "selesai": totalSelesai,
+    "pendapatan": totalPendapatan,
+  };
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -415,14 +611,15 @@ class BerandaTeknisiScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  "Laela Fazah Fitriani!",
-                  style: TextStyle(
+                 Text(
+                  "$namaTeknisi",
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -445,39 +642,79 @@ class BerandaTeknisiScreen extends StatelessWidget {
           const SizedBox(height: 28),
 
           // Quick Stats
-          const Text(
-            "Statistik Hari Ini",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1E293B),
+const Text(
+  "Statistik Hari Ini",
+  style: TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    color: Color(0xFF1E293B),
+  ),
+),
+
+const SizedBox(height: 16),
+
+// ========================
+// FIXED — FutureBuilder 
+// ========================
+FutureBuilder(
+  future: fetchSummary(),
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final data = snapshot.data ?? {};
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                data["baru"].toString(),
+                "Pekerjaan Baru",
+                const Color(0xFF10B981),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard("3", "Pekerjaan Baru", const Color(0xFF10B981)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                data["dikerjakan"].toString(),
+                "Sedang Dikerjakan",
+                const Color(0xFFF59E0B),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard("2", "Sedang Dikerjakan", const Color(0xFFF59E0B)),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                data["selesai"].toString(),
+                "Selesai",
+                const Color(0xFF3B82F6),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard("4", "Selesai", const Color(0xFF3B82F6)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                "Rp ${NumberFormat.decimalPattern('id').format(data['pendapatan'])}",
+                "Pendapatan",
+                const Color(0xFF8B5CF6),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard("Rp 1.3jt", "Pendapatan", const Color(0xFF8B5CF6)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
+            ),
+          ],
+        ),
+      ],
+    );
+  },
+),
+
+const SizedBox(height: 28),
+
 
           // Quick Actions
           const Text(

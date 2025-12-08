@@ -1,12 +1,20 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sibos_app/config.dart';
+import 'package:intl/intl.dart';
 
 class PekerjaanSelesaiScreen extends StatelessWidget {
   const PekerjaanSelesaiScreen({super.key});
+
+  // =============================== //
+  //      FORMAT RUPIAH             //
+  // =============================== //
+  String formatRupiah(dynamic value) {
+    final formatter = NumberFormat.decimalPattern('id');
+    return formatter.format(int.parse(value.toString().split('.')[0]));
+  }
 
   // =============================== //
   //     FETCH DATA DARI SERVER     //
@@ -91,36 +99,35 @@ class PekerjaanSelesaiScreen extends StatelessWidget {
 
       body: FutureBuilder(
         future: fetchPekerjaanSelesai(),
-builder: (context, snapshot) {
-  if (!snapshot.hasData) {
-    return const Center(child: CircularProgressIndicator());
-  }
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-  final List jobs = snapshot.data!;
+          final List jobs = snapshot.data!;
 
-  return SingleChildScrollView(
-    padding: const EdgeInsets.all(20),
-    child: Column(
-      children: [
-        _headerSelesai(jobs.length),
-        const SizedBox(height: 24),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _headerSelesai(jobs.length),
+                const SizedBox(height: 24),
 
-        ...jobs.map<Widget>((job) {
-          return _buildJobCard(
-            job['layanan']['jenis_layanan'],
-            job['user']?['name'],
-            job['user']['alamat'],
-            job['user']['no_hp'],
-            job['jadwal_service'].substring(0, 10),
-            "Rp ${job['total_harga']}",
+                ...jobs.map<Widget>((job) {
+                  return _buildJobCard(
+                    job['layanan']['jenis_layanan'],
+                    job['user']?['name'],
+                    job['user']['alamat'],
+                    job['user']['no_hp'],
+                    job['jadwal_service'].substring(0, 10),
+                    "Rp ${formatRupiah(job['total_harga'])}",
+                  );
+                }).toList(),
+              ],
+            ),
           );
-        }).toList(),
-      ],
-    ),
-  );
-},
-)
-
+        },
+      ),
     );
   }
 
@@ -234,56 +241,6 @@ builder: (context, snapshot) {
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF10B981),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Rating
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFA000).withOpacity(0.05),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFFFA000).withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.star, color: Color(0xFFFFA000), size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  "4.8",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Text(
-                  "(5 rating)",
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 12,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFA000).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    "Ulasan Positif",
-                    style: TextStyle(
-                      color: Color(0xFFFFA000),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
                   ),
                 ),
               ],

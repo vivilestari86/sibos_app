@@ -5,7 +5,7 @@ import 'package:sibos_app/screens/pekerjaan_selesai_screen.dart';
 import 'package:sibos_app/screens/pendapatan_teknisi_screen.dart';
 
 class BerandaTeknisiScreen extends StatelessWidget {
-  const BerandaTeknisiScreen({super.key});
+  const BerandaTeknisiScreen({super.key, required nama});
 
   @override
   Widget build(BuildContext context) {
