@@ -38,11 +38,7 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
     });
   }
 
-  // Fungsi untuk WhatsApp
-  void _launchWhatsApp() {
-    // TODO: Implement WhatsApp API
-    print('WhatsApp button pressed');
-  }
+  
 
   // Fungsi untuk logout
   void _logout() {
@@ -67,21 +63,7 @@ class _TeknisiHomeScreenState extends State<TeknisiHomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          // Tombol WhatsApp
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF25D366),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.chat, color: Colors.white, size: 20),
-              ),
-              onPressed: _launchWhatsApp,
-            ),
-          ),
+          
           // Tombol Logout
           Container(
             margin: const EdgeInsets.only(right: 12),

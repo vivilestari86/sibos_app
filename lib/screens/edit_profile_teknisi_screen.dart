@@ -35,7 +35,7 @@ class _EditProfileTeknisiScreenState extends State<EditProfileTeknisiScreen> {
     _noHpController = TextEditingController(text: t['no_hp'] ?? '');
     _keahlianController = TextEditingController(text: t['keahlian'] ?? '');
     _pengalamanController =
-        TextEditingController(text: t['pengalaman_kerja'] ?? '');
+        TextEditingController(text: t['pengalaman'] ?? '');
   }
 
   @override
@@ -59,69 +59,37 @@ class _EditProfileTeknisiScreenState extends State<EditProfileTeknisiScreen> {
   }
 
   Future<void> _simpanPerubahan() async {
-    setState(() => isLoading = true);
+  setState(() => isLoading = true);
 
-    final userUpdate = {
-      "name": _namaController.text.trim(),
-      "alamat": _alamatController.text.trim(),
-      "no_hp": _noHpController.text.trim(),
-    };
+  try {
+    final resTeknisi = await AuthService.updateProfileTeknisi(
+      {
+        "keahlian": _keahlianController.text.trim(),
+        "pengalaman": _pengalamanController.text.trim(),
+      },
+      file: _pickedImage,
+    );
 
-    final teknisiUpdate = {
-      "keahlian": _keahlianController.text.trim(),
-      "pengalaman": _pengalamanController.text.trim(),
-    };
+    setState(() => isLoading = false);
 
-    try {
-      final resUser = await AuthService.updateProfile(
-        name: userUpdate['name']!,
-        alamat: userUpdate['alamat']!,
-        noHp: userUpdate['no_hp']!,
-        gender: widget.teknisi['gender'] ?? "L",
-        email: widget.teknisi['email'] ?? "email@example.com",
-      );
-
-      if (resUser['success'] != true) {
-        throw Exception(resUser['message'] ?? 'Gagal update data user');
-      }
-
-      final resTeknisi =
-          await AuthService.updateProfileTeknisi(teknisiUpdate, file: _pickedImage);
-
-      setState(() => isLoading = false);
-
-      if (resTeknisi['success'] == true) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Profil berhasil diperbarui!'),
-            backgroundColor: const Color.fromARGB(255, 46, 3, 237),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-        Navigator.pop(context, true);
-      } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(resTeknisi['message'] ?? 'Gagal mengupdate profil'),
-            backgroundColor: Colors.red[600],
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() => isLoading = false);
+    if (resTeknisi['success'] == true) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Terjadi kesalahan: $e'),
+          content: const Text('Profil berhasil diperbarui!'),
+          backgroundColor: const Color.fromARGB(255, 46, 3, 237),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      Navigator.pop(context, true);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(resTeknisi['message'] ?? 'Gagal mengupdate profil'),
           backgroundColor: Colors.red[600],
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -130,7 +98,21 @@ class _EditProfileTeknisiScreenState extends State<EditProfileTeknisiScreen> {
         ),
       );
     }
+  } catch (e) {
+    setState(() => isLoading = false);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Terjadi kesalahan: $e'),
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

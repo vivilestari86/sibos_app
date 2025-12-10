@@ -302,12 +302,15 @@ static Future<Map<String, dynamic>> checkTeknisiStatus() async {
 
 
   static Future<Map<String, dynamic>> updateProfileTeknisi(
-    Map<String, dynamic> data, {
-    File? file,
+  Map<String, dynamic> data, {
+  File? file,
   }) async {
+    final token = await getToken();
     final url = Uri.parse("$baseUrl/teknisi/update-profile");
 
     var request = http.MultipartRequest("POST", url);
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
 
     data.forEach((key, value) {
       request.fields[key] = value.toString();
